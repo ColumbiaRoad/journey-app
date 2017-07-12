@@ -12,7 +12,7 @@ module.exports = function() {
   // IMPORT ROUTES HERE
   require('../routes/hello')(app);
   require('../routes/authentication')(app);
-  require('../routes/api.js');
+  require('../routes/api.js')(app);
 
   return app;
 };
