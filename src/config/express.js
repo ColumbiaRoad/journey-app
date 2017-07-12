@@ -1,15 +1,17 @@
 
+const express = require('express');
+const bodyParser = require('body-parser');
+const expressValidator = require('express-validator');
+
 module.exports = function() {
-  const express = require('express');
   const app = express();
-
-  const bodyParser = require('body-parser');
-
   app.use(bodyParser.urlencoded({ extended: false }))
   app.use(bodyParser.json());
+  app.use(expressValidator());
 
   // IMPORT ROUTES HERE
   require('../routes/hello')(app);
+  require('../routes/authentication')(app);
 
   return app;
 };
