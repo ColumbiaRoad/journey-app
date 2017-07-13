@@ -6,7 +6,15 @@ const shop = process.env.SHOP;
 
 const rootUrl = `https://${apikey}:${secret}@${shop}.myshopify.com/admin`;
 
+/**
+ * Builds complete URL for Shopify's Admin API. Also
+ * appends query parameters if existent.
+ * 
+ * @param {Request} req 
+ * @param {string} path 
+ */
 function buildUrl(req, path) {
+  // Append path to root URL
   const baseUrl = `${rootUrl}${path}`
   queryString = url.parse(req.url).query;
   return queryString === null 
