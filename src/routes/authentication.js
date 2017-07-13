@@ -9,12 +9,10 @@ const unirest = require('unirest');
 module.exports = function(app) {
 
   app.get('/auth/shopify-embedded', function(req, res) {
-    req.checkQuery('hmac', 'Invalid or missing param').notEmpty();
+    req.checkQuery('hmac', 'Invalid or missing param').notEmpty().checkHmac(req);
     req.checkQuery('shop', 'Invalid or missing param').notEmpty();
     req.checkQuery('timestamp', 'Invalid or missing param').notEmpty().isInt();
-    //CHECK HMAC HERE AND PROCEED ONLY IF SUCCESS
-    // IT COULD BE CUSTOM VALIDATOR ALSO
-    // https://github.com/ctavan/express-validator  look customValidators
+    
     req.getValidationResult().then(function(result) {
       if (!result.isEmpty()) {
         const message = 'There have been validation errors: ' + util.inspect(result.array());

@@ -7,7 +7,11 @@ module.exports = function() {
   const app = express();
   app.use(bodyParser.urlencoded({ extended: false }))
   app.use(bodyParser.json());
-  app.use(expressValidator());
+  app.use(expressValidator({
+    customValidators: {
+        checkHmac: require('../helpers/hmacChecker').checkHmac
+    }
+  }));
 
   // IMPORT ROUTES HERE
   require('../routes/hello')(app);
