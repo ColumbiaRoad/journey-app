@@ -38,7 +38,9 @@ module.exports = function(app) {
           res.status(500).send();
           throw new Error();
         } else {
-          const url = shopifyToken.generateAuthUrl(shop, process.env.SHOPIFY_SCOPES, nonce);
+          const shop_name = (shop.endsWith('myshopify.com')) ?
+            shop.substring(0, shop.length - 13) : shop;
+          const url = shopifyToken.generateAuthUrl(shop_name, process.env.SHOPIFY_SCOPES, nonce);
           return res.redirect(url);
         }
       })
