@@ -9,7 +9,6 @@ const unirest = require('unirest');
 const requestForAccessToken = (req, res) => {
   const {code, hmac, timestamp, state, shop} = req.query;
   const url = `https://${shop}/admin/oauth/access_token`;
-  winston.info('request ' + url);
   unirest.post(url)
   .headers({'Accept': 'application/json', 'Content-Type': 'application/json'})
   .send({ "client_id": process.env.SHOPIFY_API_KEY,
@@ -88,7 +87,7 @@ module.exports = function(app) {
   });
 
   app.get('/app_installed', function(req, res) {
-    res.send('Installation works! but no hmac checks done yet');
+    res.send('Installation works! this redirect should go to some useful place!');
   });
 
   app.get('/app_installation_failed', function(req, res) {
