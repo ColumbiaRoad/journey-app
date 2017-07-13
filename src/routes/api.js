@@ -17,14 +17,12 @@ module.exports = (app) => {
   });
 
   app.get('/api/v1/products/:productId', (req, res) => {
-    console.log(`Captured product id: ${req.params.productId}`);
-    console.log(`URL: ${baseUrl}/products/${req.params.productId}.json`);
     axios.get(`${baseUrl}/products/${req.params.productId}.json`)
       .then((result) => {
         return res.json(result.data);
       })
       .catch((err) => {
-        return res.json(err);
+        return res.json(err.response.data);
       })
   });
 }
