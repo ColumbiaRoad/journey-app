@@ -38,8 +38,8 @@ module.exports = function(app) {
           res.status(500).send();
           throw new Error();
         } else {
-          const shop_name = (shop.endsWith('myshopify.com')) ?
-            shop.substring(0, shop.length - 13) : shop;
+          const shop_name = (shop.endsWith('.myshopify.com')) ?
+            shop.substring(0, shop.length - 14) : shop;
           const url = shopifyToken.generateAuthUrl(shop_name, process.env.SHOPIFY_SCOPES, nonce);
           return res.redirect(url);
         }
@@ -68,7 +68,7 @@ module.exports = function(app) {
       }
 
       redis.getNonceByShop(shop, (error, nonce) => {
-        if (error || nonce !== tate) {
+        if (error || nonce !== state) {
           return res.status(400).send('State parameter do not match.');
         }
         // NONCE should be maybe deleted from redis if matches
