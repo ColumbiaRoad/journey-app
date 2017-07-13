@@ -5,8 +5,8 @@ const shop = process.env.SHOP;
 
 const baseUrl = `https://${apikey}:${secret}@${shop}.myshopify.com/admin`;
 
-module.exports = function(app) {
-  app.get('/api/products', function(req, res) {
+module.exports = (app) => {
+  app.get('/api/v1/products', (req, res) => {
     axios.get(`${baseUrl}/products.json`)
       .then((result) => {
         return res.json(result.data);
@@ -14,5 +14,15 @@ module.exports = function(app) {
       .catch((err) => {
         return res.json(err);
       });
+  });
+
+  app.get('/api/v1/products/:productId', (req, res) => {
+    axios.get(`${baseUrl}/products/${req.params.productId}.json`)
+      .then((result) => {
+        return res.json(resutl.data);
+      })
+      .catch((err) => {
+        return res.json(err);
+      })
   });
 }
