@@ -9,6 +9,7 @@ const unirest = require('unirest');
 const requestForAccessToken = (req, res) => {
   const {code, hmac, timestamp, state, shop} = req.query;
   const url = `https://${shop}/admin/oauth/access_token`;
+  winston.info('request ' + url);
   unirest.post(url)
   .headers({'Accept': 'application/json', 'Content-Type': 'application/json'})
   .send({ "client_id": process.env.SHOPIFY_API_KEY,
@@ -76,8 +77,8 @@ module.exports = function(app) {
         return validatinError(res, result);
       }
 
-      redis.getNonceByShop(shop, (nonce) => {
-        if (nonce !== req.query.state) {
+      redis.getNonceByShop(req.query.shop, (error, nonce) => {
+        if (error || nonce !== req.query.state) {
           return res.status(400).send('State parameter do not match.');
         }
         // NONCE should be maybe deleted from redis if matches
