@@ -17,7 +17,7 @@ module.exports = (app) => {
         return res.json(products);
       })
       .catch((err) => {
-        return res.json(err);
+        return res.json(err.response.body);
       });
   });
 
@@ -27,7 +27,7 @@ module.exports = (app) => {
         return res.json(product);
       })
       .catch((err) => {
-        return res.json(err);
+        return res.json(err.response.body);
       })
   });
 }
