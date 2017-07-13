@@ -21,9 +21,9 @@
     "pg": "^6.4.0",
     "pg-promise": "^6.3.5",
     "redis": "^2.7.1",
+    "shopify-api-node": "^2.7.0",
     "shopify-token": "^3.0.1",
     "supertest": "^3.0.0",
-    "unirest": "^0.5.1",
     "util": "^0.10.3",
     "winston": "^2.3.1"
   },
