@@ -73,7 +73,7 @@ module.exports = function(app) {
         shopifyToken.getAccessToken(shop, code).then((token) => {
           winston.info('ACCESS TOKEN ' + token);
           return res.redirect(`${process.env.BASE_URL}/app_installed`);
-        }).catch((err) => return res.redirect(`${process.env.BASE_URL}/app_installation_failed`));
+        }).catch((err) => res.redirect(`${process.env.BASE_URL}/app_installation_failed`));
       });
     });
   });
