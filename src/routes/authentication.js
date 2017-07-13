@@ -1,10 +1,22 @@
 
-const Promise = require("bluebird");
 const util = require('util');
 const crypto = require('crypto');
 const winston = require('winston'); // LOGGING
 const redis = require('../helpers/redisHelper');
-const unirest = require('unirest');
+const ShopifyToken = require('shopify-token');
+
+const validationError = (res, result) => {
+  const message = 'There have been validation errors: ' + util.inspect(result.array());
+  return res.status(400).send(message);
+};
+
+const getShopifyToken = () => {
+  return new ShopifyToken({
+    sharedSecret: process.env.SHOPIFY_APP_SECRET,
+    redirectUri: `${process.env.BASE_URL}/auth/redirect/uri`,
+    apiKey: process.env.SHOPIFY_API_KEY
+  });
+};
 
 module.exports = function(app) {
 
@@ -12,28 +24,22 @@ module.exports = function(app) {
     req.checkQuery('hmac', 'Invalid or missing param').notEmpty();
     req.checkQuery('shop', 'Invalid or missing param').notEmpty();
     req.checkQuery('timestamp', 'Invalid or missing param').notEmpty().isInt();
-    //CHECK HMAC HERE AND PROCEED ONLY IF SUCCESS
-    // IT COULD BE CUSTOM VALIDATOR ALSO
-    // https://github.com/ctavan/express-validator  look customValidators
+
     req.getValidationResult().then(function(result) {
       if (!result.isEmpty()) {
-        const message = 'There have been validation errors: ' + util.inspect(result.array());
-        res.status(400).send(message);
-        throw new Error(message);
+        return validationError(res, result);
       }
       let {hmac, shop, timestamp} = req.query;
-      const nonce = crypto.randomFillSync(Buffer.alloc(48)).toString('hex');
+      const shopifyToken = getShopifyToken();
+      const nonce = shopifyToken.generateNonce();
 
       redis.setNonceByShop(shop, nonce, function(err) {
         if (err) {
           res.status(500).send();
           throw new Error();
         } else {
-          const redirect_uri = `${process.env.BASE_URL}/auth/redirect/uri`;
-          const url = `https://${shop}/admin/oauth/authorize` +
-                      `?client_id=${process.env.SHOPIFY_API_KEY}&scope=${process.env.SHOPIFY_SCOPES}&` +
-                      `redirect_uri=${redirect_uri}&state=${nonce}`;//&grant_options[]=per-user`;
-
+          const shop_name = shop.split('.')[0];
+          const url = shopifyToken.generateAuthUrl(shop_name, process.env.SHOPIFY_SCOPES, nonce);
           return res.redirect(url);
         }
       })
@@ -47,31 +53,34 @@ module.exports = function(app) {
     req.checkQuery('state', 'Invalid or missing param').notEmpty();
     req.checkQuery('shop', 'Invalid or missing param').notEmpty();
 
-    const {code, hmac, timestamp, state, shop} = req.query;
-    //CHECK NONCE === STATE
-    const url = `https://${shop}/admin/oauth/access_token`;
-    unirest.post(url)
-    .headers({'Accept': 'application/json', 'Content-Type': 'application/json'})
-    .send({ "client_id": process.env.SHOPIFY_API_KEY,
-            "client_secret": process.env.SHOPIFY_APP_SECRET,
-            "code": code})
-    .end(function (response) {
-      if (response.status === 200) {
-        const access_token = response.body.access_token;
-        //SAVE access token and shop somewhere
-        // if we want more info about user, should change
-        // https://help.shopify.com/api/getting-started/authentication/oauth#api-access-modes
-        // to 'online access mode'
-        winston.info('ACCESS TOKEN ' + access_token);
-        return res.redirect(`${process.env.BASE_URL}/app_installed`);
-      } else {
-        return res.redirect(`${process.env.BASE_URL}/app_installation_failed`);
+    req.getValidationResult().then(function(result) {
+      if (!result.isEmpty()) {
+        return validationError(res, result);
       }
+      const {code, hmac, timestamp, state, shop} = req.query;
+      const shopifyToken = getShopifyToken();
+      const tokenMatch = shopifyToken.verifyHmac({
+        hmac, state, code, shop, timestamp
+      });
+      if (!tokenMatch) {
+        return res.status(400).send('HMAC do not match');
+      }
+
+      redis.getNonceByShop(shop, (error, nonce) => {
+        if (error || nonce !== state) {
+          return res.status(400).send('State parameter do not match.');
+        }
+        // NONCE should be maybe deleted from redis if matches
+        shopifyToken.getAccessToken(shop, code).then((token) => {
+          winston.info('ACCESS TOKEN ' + token);
+          return res.redirect(`${process.env.BASE_URL}/app_installed`);
+        }).catch((err) => res.redirect(`${process.env.BASE_URL}/app_installation_failed`));
+      });
     });
   });
 
   app.get('/app_installed', function(req, res) {
-    res.send('Installation works! but no hmac checks done yet');
+    res.send('Installation works! this redirect should go to some useful place!');
   });
 
   app.get('/app_installation_failed', function(req, res) {

@@ -17,6 +17,7 @@
     "express-validator": "^3.2.1",
     "mocha": "^3.4.2",
     "redis": "^2.7.1",
+    "shopify-token": "^3.0.1",
     "supertest": "^3.0.0",
     "unirest": "^0.5.1",
     "util": "^0.10.3",
