@@ -48,7 +48,7 @@ module.exports = function(app) {
     req.checkQuery('shop', 'Invalid or missing param').notEmpty();
 
     const {code, hmac, timestamp, state, shop} = req.query;
-
+    //CHECK NONCE === STATE
     const url = `https://${shop}/admin/oauth/access_token`;
     unirest.post(url)
     .headers({'Accept': 'application/json', 'Content-Type': 'application/json'})
