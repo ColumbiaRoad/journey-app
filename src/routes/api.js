@@ -21,7 +21,7 @@ module.exports = (app) => {
     console.log(`URL: ${baseUrl}/products/${req.params.productId}.json`);
     axios.get(`${baseUrl}/products/${req.params.productId}.json`)
       .then((result) => {
-        return res.json(resutl.data);
+        return res.json(result.data);
       })
       .catch((err) => {
         return res.json(err);
