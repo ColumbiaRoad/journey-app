@@ -7,11 +7,12 @@ Run
 To run tests
 ``` npm test ```
 
-# local setup db
+# local setup
 
 Create new Postgresql database and update ``` DATABASE_URL ``` with your credentials.
 Then run all migrations to db by
 ``` ./node_modules/node-pg-migrate/bin/pg-migrate up```
+Install Redis if you don't have it yet.
 
 # heroku setup
 
