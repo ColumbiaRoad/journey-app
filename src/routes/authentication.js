@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const winston = require('winston'); // LOGGING
 const redis = require('../helpers/redisHelper');
 const ShopifyToken = require('shopify-token');
+const shopModel = require('../models/shops');
 
 const validationError = (res, result) => {
   const message = 'There have been validation errors: ' + util.inspect(result.array());
@@ -72,7 +73,9 @@ module.exports = function(app) {
         }
         // NONCE should be maybe deleted from redis if matches
         shopifyToken.getAccessToken(shop, code).then((token) => {
-          winston.info('ACCESS TOKEN ' + token);
+          return shopModel.saveShop(shop, token);
+        }).then((saveParam) => {
+          winston.info('saved to db ' + saveParam);
           return res.redirect(`${process.env.BASE_URL}/app_installed`);
         }).catch((err) => res.redirect(`${process.env.BASE_URL}/app_installation_failed`));
       });
