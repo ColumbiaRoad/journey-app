@@ -7,8 +7,13 @@ const shopModel = require('../src/models/shops');
 
 describe('DB shops table /', function() {
   it('can insert', function(done) {
-    shopModel.saveShop('testi', 'pesti').then((params) => {
-      //delete it now
+    const dbname = 'testi';
+    shopModel.saveShop(dbname, 'pesti').then((params) => {
+      return shopModel.getShop(dbname);
+    }).then((shops) => {
+      assert(shops[0]['access_token'] === 'pesti');
+      return shopModel.deleteShop(dbname);
+    }).then((response) => {
       done();
     });
   });

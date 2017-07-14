@@ -10,9 +10,13 @@ const saveShop = (shop, access_token) => {
 };
 
 const getShop = (shop) => {
-  return db.one('SELECT * FROM shops WHERE shop_name LIKE $1', shop);
+  return db.query('SELECT * FROM shops WHERE shop_url LIKE $1', shop);
+};
+
+const deleteShop = (shop) => {
+  return db.query('DELETE FROM shops WHERE shop_url LIKE $1', shop);
 };
 
 module.exports = {
-  saveShop, getShop
+  saveShop, getShop, deleteShop
 };
