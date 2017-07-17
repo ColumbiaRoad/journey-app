@@ -77,7 +77,10 @@ module.exports = function(app) {
         }).then((saveParam) => {
           winston.info('saved to db ' + saveParam);
           return res.redirect(`${process.env.BASE_URL}/app_installed`);
-        }).catch((err) => res.redirect(`${process.env.BASE_URL}/app_installation_failed`));
+        }).catch((err) => {
+          winston.error(err);
+          return res.redirect(`${process.env.BASE_URL}/app_installation_failed`);
+        });
       });
     });
   });
