@@ -1,7 +1,7 @@
 const Shopify = require('shopify-api-node');
 
-const apiKey = process.env.API_KEY;
-const password = process.env.API_SECRET;
+const apiKey = process.env.SHOPIFY_API_KEY;
+const password = process.env.SHOPIFY_APP_SECRET;
 const shopName = process.env.SHOP;
 
 const shopify = new Shopify({
