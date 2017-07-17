@@ -86,7 +86,8 @@ module.exports = function(app) {
   });
 
   app.get('/app_installed', function(req, res) {
-    res.send('Installation works! this redirect should go to some useful place!');
+    // res.send('Installation works! this redirect should go to some useful place!');
+    res.redirect('https://technician-convenience-70531.netlify.com/');
   });
 
   app.get('/app_installation_failed', function(req, res) {
