@@ -4,7 +4,7 @@ const shopName = process.env.SHOP;
 
 const shopify = new Shopify({
   shopName: shopName,
-  accessToken: shopModel.getShop(shopName),
+  accessToken: shopModel.getShop(`${shopName}.myshopify.com`),
   autoLimit: true
 });
 
