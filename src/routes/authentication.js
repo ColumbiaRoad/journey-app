@@ -76,7 +76,7 @@ module.exports = function(app) {
           return shopModel.saveShop(shop, token);
         }).then((saveParam) => {
           winston.info('saved to db ' + saveParam);
-          return res.redirect(`${process.env.BASE_URL}/app_installed`);
+          return res.redirect(`${process.env.BASE_URL}/app_installed?shop=${shop}`);
         }).catch((err) => {
           winston.error(err);
           return res.redirect(`${process.env.BASE_URL}/app_installation_failed`);
@@ -87,7 +87,8 @@ module.exports = function(app) {
 
   app.get('/app_installed', function(req, res) {
     // res.send('Installation works! this redirect should go to some useful place!');
-    res.redirect('https://ja-admin-panel-us.herokuapp.com/');
+    const shop = req.query.shop;
+    res.redirect(`https://ja-admin-panel-us.herokuapp.com/login?shop=${shop}`);
   });
 
   app.get('/app_installation_failed', function(req, res) {
