@@ -1,13 +1,11 @@
 const Shopify = require('shopify-api-node');
-
-const apiKey = process.env.SHOPIFY_API_KEY;
-const password = process.env.SHOPIFY_APP_SECRET;
+const shopModel = require('../models/shops');
 const shopName = process.env.SHOP;
 
 const shopify = new Shopify({
   shopName: shopName,
-  apiKey: apiKey,
-  password: password
+  accessToken: shopModel.getShop(shopName),
+  autoLimit: true
 });
 
 module.exports = (app) => {
