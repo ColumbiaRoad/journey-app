@@ -1,10 +1,17 @@
 const Shopify = require('shopify-api-node');
 const shopModel = require('../models/shops');
+const winston = require('winston'); // LOGGING
+
 const shopName = process.env.SHOP;
+const shopDomain = `${shopName}.myshopify.com`;
+const token = shopModel.getShop(shopDomain)
+winston.info(`Shop name: ${shopName}`);
+winston.info(`Shop domain: ${shopDomain}`);
+winston.info(`Access token: ${token}`);
 
 const shopify = new Shopify({
   shopName: shopName,
-  accessToken: shopModel.getShop(`${shopName}.myshopify.com`),
+  accessToken: token,
   autoLimit: true
 });
 
