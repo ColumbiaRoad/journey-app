@@ -4,20 +4,27 @@ const winston = require('winston'); // LOGGING
 
 const shopName = process.env.SHOP;
 const shopDomain = `${shopName}.myshopify.com`;
-const token = shopModel.getShop(shopDomain)
-winston.info(`Shop name: ${shopName}`);
-winston.info(`Shop domain: ${shopDomain}`);
-winston.info(`Access token: ${token}`);
+const shopify = undefined;
 
-const shopify = new Shopify({
-  shopName: shopName,
-  accessToken: token,
-  autoLimit: true
-});
+function getShopifyInstance() {
+  if(shopify === undefined) {
+    shopModel.getShop(shopDomain)
+      .then((token) => {
+        shopify = new Shopify({
+          shopName: shopName,
+          accessToken: token,
+          autoLimit: true
+        });
+        return shopify;
+      });
+  } else {
+    return shopify;
+  }
+}
 
 module.exports = (app) => {
   app.get('/api/v1/products', (req, res) => {
-    shopify.product.list(req.query)
+    getShopifyInstance.product.list(req.query)
       .then((products) => {
         return res.json(products);
       })
@@ -27,7 +34,7 @@ module.exports = (app) => {
   });
 
   app.get('/api/v1/products/:id', (req, res) => {
-    shopify.product.get(req.params.id, req.query)
+    getShopifyInstance.product.get(req.params.id, req.query)
       .then((product) => {
         return res.json(product);
       })
