@@ -9,10 +9,11 @@ const shopify = undefined;
 function getShopifyInstance() {
   if(shopify === undefined) {
     shopModel.getShop(shopDomain)
-      .then((token) => {
+      .then((shop) => {
+        winston.info(`Shop: ${shop}`);
         shopify = new Shopify({
           shopName: shopName,
-          accessToken: token,
+          accessToken: shop.access_token,
           autoLimit: true
         });
         return shopify;
@@ -24,7 +25,7 @@ function getShopifyInstance() {
 
 module.exports = (app) => {
   app.get('/api/v1/products', (req, res) => {
-    getShopifyInstance.product.list(req.query)
+    getShopifyInstance().product.list(req.query)
       .then((products) => {
         return res.json(products);
       })
@@ -34,7 +35,7 @@ module.exports = (app) => {
   });
 
   app.get('/api/v1/products/:id', (req, res) => {
-    getShopifyInstance.product.get(req.params.id, req.query)
+    getShopifyInstance().product.get(req.params.id, req.query)
       .then((product) => {
         return res.json(product);
       })
