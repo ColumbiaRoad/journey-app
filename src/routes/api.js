@@ -7,7 +7,8 @@ const shopDomain = `${shopName}.myshopify.com`;
 const shopify = undefined;
 
 function getShopifyInstance() {
-  if(shopify === undefined) {
+  return new Promise((resolve, reject) => {
+    if(shopify === undefined) {
     shopModel.getShop(shopDomain)
       .then((shop) => {
         winston.info(`Shop: ${shop}`);
@@ -16,16 +17,24 @@ function getShopifyInstance() {
           accessToken: shop.access_token,
           autoLimit: true
         });
-        return shopify;
+        resolve(shopify);
+      })
+      .catch((err) => {
+        reject(err);
       });
-  } else {
-    return shopify;
-  }
+    } else {
+      resolve(shopify);
+    }
+  })
+  
 }
 
 module.exports = (app) => {
   app.get('/api/v1/products', (req, res) => {
-    getShopifyInstance().product.list(req.query)
+    getShopifyInstance()
+      .then((shopify) => {
+        return shopify.product.list(req.query);
+      })
       .then((products) => {
         return res.json(products);
       })
@@ -35,7 +44,10 @@ module.exports = (app) => {
   });
 
   app.get('/api/v1/products/:id', (req, res) => {
-    getShopifyInstance().product.get(req.params.id, req.query)
+    getShopifyInstance()
+      .then((shopify) => {
+        return shopify.product.get(req.params.id, req.query);
+      })
       .then((product) => {
         return res.json(product);
       })
