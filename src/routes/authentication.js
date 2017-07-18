@@ -88,7 +88,7 @@ module.exports = function(app) {
   app.get('/app_installed', function(req, res) {
     // res.send('Installation works! this redirect should go to some useful place!');
     const shop = req.query.shop;
-    res.redirect(`https://ja-admin-panel-us.herokuapp.com/login?shop=${shop}`);
+    res.redirect(`https://ja-admin-panel-us.herokuapp.com/?shop=${shop}`);
   });
 
   app.get('/app_installation_failed', function(req, res) {
