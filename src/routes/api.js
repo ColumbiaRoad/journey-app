@@ -10,17 +10,23 @@ function getShopifyInstance() {
   return new Promise((resolve, reject) => {
     if(shopify === undefined) {
     shopModel.getShop(shopDomain)
-      .then((shop) => {
-        winston.info(`Shops matching: ${shop.length}`);
+      .then((result) => {
+        winston.info(`Shops matching: ${result.length}`);
         // Currently shops aren't deleted so there can be multiple tokens.
         // If so, take latest
-        const token = Array.isArray(shop) ? shop.pop().access_token : shop.access_token;
-        shopify = new Shopify({
-          shopName: shopName,
-          accessToken: token,
-          autoLimit: true
-        });
-        resolve(shopify);
+        const token = result.length > 0 ? result.pop().access_token : undefined;
+        if(token !== undefined) {
+          shopify = new Shopify({
+            shopName: shopName,
+            accessToken: token,
+            autoLimit: true
+          });
+          resolve(shopify);
+        } else {
+          reject({
+            message: 'Unkown shop'
+          });
+        }
       })
       .catch((err) => {
         reject(err);
@@ -28,7 +34,7 @@ function getShopifyInstance() {
     } else {
       resolve(shopify);
     }
-  })
+  });
   
 }
 
@@ -45,8 +51,9 @@ module.exports = (app) => {
         if (err && err.hasOwnProperty('response')) {
           return res.json(err.response.body);
         } else {
+          const message = err.hasOwnProperty('message') ? err.message : 'unkown error';
           return res.json({
-            error: err
+            errors: message
           });
         }
       });
