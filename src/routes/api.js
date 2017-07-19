@@ -12,9 +12,12 @@ function getShopifyInstance() {
     shopModel.getShop(shopDomain)
       .then((shop) => {
         winston.info(`Shop: ${JSON.stringify(shop)}`);
+        // Currently shops aren't deleted so there can be multiple tokens.
+        // If so, take latest
+        const token = Array.isArray(shop) ? shop.pop().access_token : shop.access_token;
         shopify = new Shopify({
           shopName: shopName,
-          accessToken: shop.access_token,
+          accessToken: token,
           autoLimit: true
         });
         resolve(shopify);
