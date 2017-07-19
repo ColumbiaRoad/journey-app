@@ -39,7 +39,13 @@ module.exports = (app) => {
         return res.json(products);
       })
       .catch((err) => {
-        return res.json(err.response.body);
+        if (err && err.hasOwnProperty('response')) {
+          return res.json(err.response.body);
+        } else {
+          return res.json({
+            error: err
+          });
+        }
       });
   });
 
