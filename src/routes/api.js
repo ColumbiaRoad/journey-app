@@ -4,24 +4,22 @@ const winston = require('winston'); // LOGGING
 
 const shopName = process.env.SHOP;
 const shopDomain = `${shopName}.myshopify.com`;
-const shopify = undefined;
+let shopify = undefined;
 
 function getShopifyInstance() {
   return new Promise((resolve, reject) => {
     if(shopify === undefined) {
     shopModel.getShop(shopDomain)
       .then((shop) => {
-        winston.info(`Shop: ${JSON.stringify(shop)}`);
+        winston.info(`Shops matching: ${shop.length}`);
         // Currently shops aren't deleted so there can be multiple tokens.
         // If so, take latest
         const token = Array.isArray(shop) ? shop.pop().access_token : shop.access_token;
-        winston.info(`Token: ${token}`)
         shopify = new Shopify({
           shopName: shopName,
           accessToken: token,
           autoLimit: true
         });
-        winston.info(`Shopify object: ${shopify}`);
         resolve(shopify);
       })
       .catch((err) => {
