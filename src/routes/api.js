@@ -11,7 +11,7 @@ function getShopifyInstance() {
     if(shopify === undefined) {
     shopModel.getShop(shopDomain)
       .then((shop) => {
-        winston.info(`Shop: ${shop}`);
+        winston.info(`Shop: ${JSON.stringify(shop)}`);
         shopify = new Shopify({
           shopName: shopName,
           accessToken: shop.access_token,
