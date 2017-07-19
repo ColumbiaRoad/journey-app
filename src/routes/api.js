@@ -15,11 +15,13 @@ function getShopifyInstance() {
         // Currently shops aren't deleted so there can be multiple tokens.
         // If so, take latest
         const token = Array.isArray(shop) ? shop.pop().access_token : shop.access_token;
+        winston.info(`Token: ${token}`)
         shopify = new Shopify({
           shopName: shopName,
           accessToken: token,
           autoLimit: true
         });
+        winston.info(`Shopify object: ${shopify}`);
         resolve(shopify);
       })
       .catch((err) => {
