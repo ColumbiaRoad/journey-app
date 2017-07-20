@@ -5,6 +5,7 @@ const winston = require('winston'); // LOGGING
 const redis = require('../helpers/redisHelper');
 const ShopifyToken = require('shopify-token');
 const shopModel = require('../models/shops');
+const jwt = require('jsonwebtoken');
 
 const validationError = (res, result) => {
   const message = 'There have been validation errors: ' + util.inspect(result.array());
@@ -18,6 +19,13 @@ const getShopifyToken = () => {
     apiKey: process.env.SHOPIFY_API_KEY
   });
 };
+
+function getJWTToken(shop) {
+  const payload = {
+    shop: shop
+  };
+  return jwt.sign(payload, process.env.SHOPIFY_APP_SECRET, { expiresIn: '3h' });
+}
 
 module.exports = function(app) {
 
@@ -76,22 +84,14 @@ module.exports = function(app) {
           return shopModel.saveShop(shop, token);
         }).then((saveParam) => {
           winston.info('saved to db ' + saveParam);
-          return res.redirect(`${process.env.BASE_URL}/app_installed?shop=${shop}`);
+          const shop = req.query.shop;
+          const token = getJWTToken(shop);
+          res.redirect(`https://ja-admin-panel-us.herokuapp.com/?shop=${shop}&token=${token}`);
         }).catch((err) => {
           winston.error(err);
-          return res.redirect(`${process.env.BASE_URL}/app_installation_failed`);
+          return res.status(400).send('Unable to authenticate');
         });
       });
     });
-  });
-
-  app.get('/app_installed', function(req, res) {
-    // res.send('Installation works! this redirect should go to some useful place!');
-    const shop = req.query.shop;
-    res.redirect(`https://ja-admin-panel-us.herokuapp.com/?shop=${shop}`);
-  });
-
-  app.get('/app_installation_failed', function(req, res) {
-    res.send('Installation do not work :(');
   });
 };

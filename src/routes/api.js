@@ -2,23 +2,21 @@ const Shopify = require('shopify-api-node');
 const shopModel = require('../models/shops');
 const winston = require('winston'); // LOGGING
 
-const shopName = process.env.SHOP;
-const shopDomain = `${shopName}.myshopify.com`;
 let shopify = undefined;
 
-function getShopifyInstance() {
+function getShopifyInstance(shop) {
   return new Promise((resolve, reject) => {
     if(shopify === undefined) {
-    shopModel.getShop(shopDomain)
+    shopModel.getShop(shop)
       .then((result) => {
         winston.info(`Shops matching: ${result.length}`);
         // Currently shops aren't deleted so there can be multiple tokens.
         // If so, take latest
-        const token = result.length > 0 ? result.pop().access_token : undefined;
-        if(token !== undefined) {
+        const shop = result.length > 0 ? result.pop() : undefined;
+        if(shop !== undefined) {
           shopify = new Shopify({
-            shopName: shopName,
-            accessToken: token,
+            shopName: shop.shop_url.split('.')[0],
+            accessToken: shop.access_token,
             autoLimit: true
           });
           resolve(shopify);
@@ -38,9 +36,9 @@ function getShopifyInstance() {
   
 }
 
-module.exports = (app) => {
+module.exports = function(app) {
   app.get('/api/v1/products', (req, res) => {
-    getShopifyInstance()
+    getShopifyInstance(req.auth.shop)
       .then((shopify) => {
         return shopify.product.list(req.query);
       })
@@ -60,7 +58,7 @@ module.exports = (app) => {
   });
 
   app.get('/api/v1/products/:id', (req, res) => {
-    getShopifyInstance()
+    getShopifyInstance(req.auth.shop)
       .then((shopify) => {
         return shopify.product.get(req.params.id, req.query);
       })
