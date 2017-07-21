@@ -5,7 +5,8 @@ const db = pgp(process.env.DATABASE_URL);
 const uuid = require('node-uuid');
 
 const saveShop = (shop, access_token) => {
-  return db.query('INSERT INTO shops(id, shop_url, access_token) VALUES($1, $2, $3)',
+  return db.query('INSERT INTO shops(id, shop_url, access_token) VALUES($1, $2, $3)'
+                + 'ON CONFLICT (shop_url) DO UPDATE SET access_token = $3',
     [uuid.v4(), shop, access_token]);
 };
 
