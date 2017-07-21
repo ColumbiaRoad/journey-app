@@ -86,7 +86,7 @@ module.exports = function(app) {
           winston.info('saved to db ' + saveParam);
           const shop = req.query.shop;
           const token = getJWTToken(shop);
-          res.redirect(`https://ja-admin-panel-us.herokuapp.com/?shop=${shop}&token=${token}`);
+          res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
         }).catch((err) => {
           winston.error(err);
           return res.status(400).send('Unable to authenticate');
