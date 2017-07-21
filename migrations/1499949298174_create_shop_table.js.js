@@ -1,6 +1,6 @@
 exports.up = (pgm) => {
   pgm.createTable('shops',
-    { id: 'char(36)',
+    { id: 'char(36) UNIQUE',
       shop_url: 'varchar UNIQUE',
       access_token: 'varchar'
     }
