@@ -5,7 +5,7 @@ const expressValidator = require('express-validator');
 const jwt = require('express-jwt');
 
 const allowCrossDomain = (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', procss.env.ACCESS_CONTROL_ALLOW_ORIGIN);
+    res.header('Access-Control-Allow-Origin', process.env.ACCESS_CONTROL_ALLOW_ORIGIN);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
 
