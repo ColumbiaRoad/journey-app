@@ -3,6 +3,13 @@ const pgp = require('pg-promise')();
 const db = pgp(process.env.DATABASE_URL);
 const shopModel = require('./shops');
 
+/**
+ * Saves to db
+ * @param  {[string]} shop_name
+ * @param  {[string]} question  Like "do you want women or mens bike?"
+ * @param  {[array]} answers   Array containing objects like {answer: '', variant: {}}
+ * @return {[promise]}
+ */
 const saveQuestionAndAnswers = (shop_name, question, answers) => {
   return shopModel.getShop(shop_name).then((shop) => {
     return db.query('INSERT INTO questions(question, shop_id) '+
@@ -23,7 +30,15 @@ const saveQuestionAndAnswers = (shop_name, question, answers) => {
     return db.query(query, params);
   });
 };
-//'INSERT INTO answers(question_id, answer, variant) VALUES ($1, $2, $3);',
+
+const getAllQuestionsAndAnswers = (shop_url) => {
+  return shopModel.getShop(shop_url).then((shop) => {
+    const query = 'SELECT * FROM answers INNER JOIN questions USING (question_id) ' +
+      'INNER JOIN shops USING (shop_id) WHERE shop_url LIKE $1;';
+    return db.query(query, [shop_url]);
+  });
+};
+
 module.exports = {
-  saveQuestionAndAnswers
+  saveQuestionAndAnswers, getAllQuestionsAndAnswers
 };

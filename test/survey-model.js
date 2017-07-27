@@ -23,14 +23,20 @@ describe('DB shops table /', function() {
     });
   });
 
-  it('can insert question and multiple answers', function(done) {
+  it('can insert and get question and multiple answers', function(done) {
     const dbname = 'testi3';
+    const answerList = [{answer:'yes!', variant:{a:1}}, {answer: "oui!", variant:{b:2, c:"c"}}];
     shopModel.saveShop(dbname, 'pesti').then((params) => {
       return surveyModel.saveQuestionAndAnswers(
-        dbname, 'this will work!',
-        [{answer:'yes!', variant:{a:1}}, {answer: "oui!", variant:{b:2, c:"c"}}]
+        dbname, 'this will work!', answerList
       );
     }).then((response) => {
+      return surveyModel.getAllQuestionsAndAnswers(dbname);
+    }).then((rows) => {
+      assert(rows.length > 1);
+      assert(
+        (rows[0].answer === answerList[0].answer) || (rows[0].answer === answerList[1].answer)
+      );
       return shopModel.getShop(dbname);
     }).then((shops) => {
       assert(shops[0]['access_token'] === 'pesti');
