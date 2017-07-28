@@ -1,6 +1,5 @@
 
-const pgp = require('pg-promise')();
-const db = pgp(process.env.DATABASE_URL);
+const db = require('./db').getDBInstance();
 const shopModel = require('./shops');
 
 /**
@@ -12,6 +11,9 @@ const shopModel = require('./shops');
  */
 const saveQuestionAndAnswers = (shop_name, question, answers) => {
   return shopModel.getShop(shop_name).then((shop) => {
+    if (shop.length < 1) {
+      throw new Error('No shop found with name: ' + shop_name);
+    }
     return db.query('INSERT INTO questions(question, shop_id) '+
       'VALUES($1, $2) RETURNING question_id;', [question, shop[0].shop_id]);
   }).then((added_question) => {

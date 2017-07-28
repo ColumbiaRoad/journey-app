@@ -1,6 +1,5 @@
 
-const pgp = require('pg-promise')();
-const db = pgp(process.env.DATABASE_URL);
+const db = require('./db').getDBInstance();
 
 const saveShop = (shop, access_token) => {
   return db.query('INSERT INTO shops(shop_url, access_token) VALUES($1, $2)'

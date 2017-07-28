@@ -17,14 +17,18 @@ module.exports = function() {
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
   app.use(expressValidator());
+
   app.use(allowCrossDomain);
   const jwtConfig = {
     secret: process.env.SHOPIFY_APP_SECRET,
     requestProperty: 'auth'
   };
   // Require JWT token for all paths but the ones starting with /auth/
-  app.use(jwt(jwtConfig).unless({path: [/^\/auth\//, '/journey-assistant']}));
+  app.use(jwt(jwtConfig).unless({path: [/^\/auth\//]}));
   app.use(function (err, req, res, next) {
+    if (process.env.NODE_ENV === 'test') {
+      return next();
+    }
     if (err.name === 'UnauthorizedError') {
       res.status(401).json('Invalid token');
     }

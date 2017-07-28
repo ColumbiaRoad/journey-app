@@ -1,4 +1,6 @@
 
+require('dotenv').config();
+
 const request = require('supertest');
 const express = require('../src/config/express');
 const app = express();
@@ -6,7 +8,7 @@ const assert = require('assert');
 
 describe('GET /', function() {
   it('Contains hello', function(done) {
-    /*request(app)
+    request(app)
       .get('/')
       .expect(200)
       .expect(function(res) {
@@ -16,7 +18,5 @@ describe('GET /', function() {
         if (err) return done(err);
         done();
       });
-      */ //AUTH FAILS!
-      done();
   });
 });

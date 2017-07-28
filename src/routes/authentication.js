@@ -1,16 +1,10 @@
-
-const util = require('util');
 const crypto = require('crypto');
 const winston = require('winston'); // LOGGING
 const redis = require('../helpers/redisHelper');
 const ShopifyToken = require('shopify-token');
 const shopModel = require('../models/shops');
 const jwt = require('jsonwebtoken');
-
-const validationError = (res, result) => {
-  const message = 'There have been validation errors: ' + util.inspect(result.array());
-  return res.status(400).send(message);
-};
+const validationError = require('../helpers/utils').validationError;
 
 const getShopifyToken = () => {
   return new ShopifyToken({
