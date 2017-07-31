@@ -1,10 +1,10 @@
 
 const db = require('./db').getDBInstance();
 
-const saveShop = (shop, access_token) => {
+const saveShop = (shop, accessToken) => {
   return db.query('INSERT INTO shops(shop_url, access_token) VALUES($1, $2)'
                 + 'ON CONFLICT (shop_url) DO UPDATE SET access_token = $2',
-    [shop, access_token]);
+    [shop, accessToken]);
 };
 
 const getShop = (shop) => {

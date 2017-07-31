@@ -81,10 +81,10 @@ module.exports = function(app) {
       if (!result.isEmpty()) {
         return validationError(res, result);
       }
-      const shop_name = (req.auth) ? req.auth.shop : 'salashoppi'; // FOR TESTING
-      return Promise.all(req.body.questions.map((question_object) => {
+      const shopName = (req.auth) ? req.auth.shop : 'salashoppi'; // FOR TESTING
+      return Promise.all(req.body.questions.map((questionObject) => {
         return surveyModel.saveQuestionAndAnswers(
-          shop_name, question_object.question, question_object.answers
+          shopName, questionObject.question, questionObject.answers
         );
       }));
     })
