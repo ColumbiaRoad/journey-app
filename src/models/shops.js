@@ -15,11 +15,6 @@ const deleteShop = (shop) => {
   return db.query('DELETE FROM shops WHERE shop_url LIKE $1', shop);
 };
 
-/**
-* Survey model in json field with all information about survey
-*/
-const setSurveyModel = null; //TODO
-
 module.exports = {
   saveShop, getShop, deleteShop
 };
