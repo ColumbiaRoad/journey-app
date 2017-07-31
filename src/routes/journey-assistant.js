@@ -11,7 +11,7 @@ module.exports = function(app) {
   };
 
   // REPLACE THIS BY DB CONNECTION
-  const getModel = (shop_url) => {
+  const getModel = (shopUrl) => {
     return {
         rows:[
           {

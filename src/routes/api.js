@@ -33,7 +33,7 @@ function getShopifyInstance(shop) {
       resolve(shopify);
     }
   });
-  
+
 }
 
 module.exports = function(app) {
@@ -70,7 +70,7 @@ module.exports = function(app) {
       });
   });
 
-  app.post('/api/v1/survey_model', (req, res) => {
+  app.post('/api/v1/survey-model', (req, res) => {
     getShopifyInstance(req.auth.shop)
       .then((shopify) => {
         return null; //TODO save to db
