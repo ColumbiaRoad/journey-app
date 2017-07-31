@@ -3,13 +3,15 @@ module.exports = function(app) {
 
   // REPLACE THIS BY DB CONNECTION
   const getModel = (shop_url) => {
-    return [{
-      answer: 'big',
-      variant: {"random":"this object can be everything"},
-      question: 'big or small?',
-      shop_url:'salashoppi',
-      access_token:'access_token'
-    }];
+    return {
+        rows:[{
+            answer: 'big',
+            variant: {"random":"this object can be everything"},
+            question: 'big or small?',
+            shop_url:'salashoppi',
+            access_token:'access_token'
+        }]
+      };
   };
 
   const formatOneQuestion = (question_row) => {
