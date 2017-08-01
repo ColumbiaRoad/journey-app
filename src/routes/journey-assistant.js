@@ -5,10 +5,31 @@ const winston = require('winston'); // LOGGING
 
 module.exports = function(app) {
   const formatOneQuestion = (question) => {
-    return '<div>' +
+    return '<div class="question_div">' +
             '<h1>' + question[0].question + '</h1>' +
             question.map((r) => '<p>' + r.answer + '</p>').join(' ') +
            '</div>';
+  };
+
+  const createPage = (grouppedQuestions) => {
+    let liquidHTML = '';
+    liquidHTML += ```
+    {% stylesheet 'scss' %}
+      $someUnusedVariable: #7ab55c;
+
+      .question_div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+    {% endstylesheet %}
+     ```;
+
+     Object.keys(grouppedQuestions).forEach((question) => {
+       liquidHTML += formatOneQuestion(grouppedQuestions[question]);
+     });
+     return liquidHTML;
   };
 
   app.get('/journey-assistant', function(req, res) {
@@ -20,10 +41,7 @@ module.exports = function(app) {
         return res.status(400).send(message);
       }
       const grouppedQuestions = utils.groupBy(model, 'question');
-      let liquidHTML = '';
-      Object.keys(grouppedQuestions).forEach((question) => {
-        liquidHTML += formatOneQuestion(grouppedQuestions[question]);
-      });
+      let liquidHTML = createPage(grouppedQuestions);
 
       res.setHeader('content-type', 'application/liquid'); // Let's tell shopify that liquid is coming!
       return res.send(liquidHTML);
