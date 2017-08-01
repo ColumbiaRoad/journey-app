@@ -13,7 +13,7 @@ module.exports = function(app) {
 
   const createPage = (grouppedQuestions) => {
     let liquidHTML = '';
-    liquidHTML += `
+    `
     {% stylesheet 'scss' %}
       $someUnusedVariable: #7ab55c;
 
