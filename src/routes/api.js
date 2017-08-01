@@ -1,6 +1,8 @@
 const Shopify = require('shopify-api-node');
 const shopModel = require('../models/shops');
 const winston = require('winston'); // LOGGING
+const surveyModel = require('../models/surveys');
+const validationError = require('../helpers/utils').validationError;
 
 let shopify = undefined;
 
@@ -71,15 +73,27 @@ module.exports = function(app) {
   });
 
   app.post('/api/v1/survey-model', (req, res) => {
-    getShopifyInstance(req.auth.shop)
-      .then((shopify) => {
-        return null; //TODO save to db
-      })
-      .then((response) => {
-        return res.json(product);
-      })
-      .catch((err) => {
-        return res.json(err.response.body);
-      });
-  })
+    req.checkBody({
+     'questions': {
+        notEmpty: true
+    }});
+    req.getValidationResult().then((result) => {
+      if (!result.isEmpty()) {
+        return validationError(res, result);
+      }
+      const shopName = (req.auth) ? req.auth.shop : 'salashoppi'; // FOR TESTING
+      return Promise.all(req.body.questions.map((questionObject) => {
+        return surveyModel.saveQuestionAndAnswers(
+          shopName, questionObject.question, questionObject.answers
+        );
+      }));
+    })
+    .then((response) => {
+      return res.json({status: 'ok'});
+    })
+    .catch((err) => {
+      winston.error(err);
+      return res.status(400).send('Unable to save model');
+    });
+  });
 }

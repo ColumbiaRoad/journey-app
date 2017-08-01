@@ -1,9 +1,9 @@
 exports.up = (pgm) => {
   pgm.createTable('shops',
-    { id: 'char(36) UNIQUE',
+    {
+      shop_id: 'SERIAL PRIMARY KEY',
       shop_url: 'varchar UNIQUE',
       access_token: 'varchar',
-      survey_model: 'json',
     }
   );
 };

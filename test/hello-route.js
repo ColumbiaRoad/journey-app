@@ -1,4 +1,6 @@
 
+require('dotenv').config();
+
 const request = require('supertest');
 const express = require('../src/config/express');
 const app = express();

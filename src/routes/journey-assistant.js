@@ -1,6 +1,5 @@
 
 module.exports = function(app) {
-
   //Move to utils file
   //https://stackoverflow.com/questions/14446511/what-is-the-most-efficient-method-to-groupby-on-a-javascript-array-of-objects
   const groupBy = (xs, key) => {
