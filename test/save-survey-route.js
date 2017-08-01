@@ -6,7 +6,9 @@ const express = require('../src/config/express');
 const app = express();
 const assert = require('assert');
 
-describe('POST /api/v1/survey_model', function() {
+const shopModel = require('../src/models/shops');
+
+describe('POST /api/v1/survey-model', function() {
   it('Can save survey via api', (done) => {
     const bodyJson = {
       questions: [
@@ -22,7 +24,7 @@ describe('POST /api/v1/survey_model', function() {
       ]
     };
     request(app)
-      .post('/api/v1/survey_model')
+      .post('/api/v1/survey-model')
       .send(bodyJson)
       .expect(200)
       .end((err, res) => {
