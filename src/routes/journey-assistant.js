@@ -13,8 +13,7 @@ module.exports = function(app) {
 
   app.get('/journey-assistant', function(req, res) {
     const shopUrl = req.query.shop;
-    const shopName = shopUrl.split('.')[0];
-    surveyModel.getAllQuestionsAndAnswers(shopName).then((model) => {
+    surveyModel.getAllQuestionsAndAnswers(shopUrl).then((model) => {
       if (model.length < 1) {
         const message = `No shop ${shopName} found.`;
         winston.error(message);
