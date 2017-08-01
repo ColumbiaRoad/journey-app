@@ -13,7 +13,7 @@ module.exports = function(app) {
 
   const createPage = (grouppedQuestions) => {
     let liquidHTML = '';
-    liquidHTML += ```
+    liquidHTML += `
     {% stylesheet 'scss' %}
       $someUnusedVariable: #7ab55c;
 
@@ -24,7 +24,7 @@ module.exports = function(app) {
         align-items: center;
       }
     {% endstylesheet %}
-     ```;
+     `;
 
      Object.keys(grouppedQuestions).forEach((question) => {
        liquidHTML += formatOneQuestion(grouppedQuestions[question]);
