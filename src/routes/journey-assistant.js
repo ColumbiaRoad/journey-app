@@ -13,9 +13,13 @@ module.exports = function(app) {
 
   app.get('/journey-assistant', function(req, res) {
     const shopUrl = req.query.shop;
-    const shopName = shopUrl.split('.');
-    winston.info(shopName);
+    const shopName = shopUrl.split('.')[0];
     surveyModel.getAllQuestionsAndAnswers(shopName).then((model) => {
+      if (model.length < 1) {
+        const message = `No shop ${shopName} found.`;
+        winston.error(message);
+        return res.status(400).send(message);
+      }
       const grouppedQuestions = utils.groupBy(model, 'question');
       let liquidHTML = '';
       Object.keys(grouppedQuestions).forEach((question) => {
