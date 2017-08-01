@@ -12,8 +12,10 @@ module.exports = function(app) {
   };
 
   app.get('/journey-assistant', function(req, res) {
-    const shopUrl = req.auth.shop;
-    surveyModel.getAllQuestionsAndAnswers(shopUrl).then((model) => {
+    const shopUrl = req.query.shop;
+    const shopName = shopUrl.split('.');
+    winston.info(shopName);
+    surveyModel.getAllQuestionsAndAnswers(shopName).then((model) => {
       const grouppedQuestions = utils.groupBy(model, 'question');
       let liquidHTML = '';
       Object.keys(grouppedQuestions).forEach((question) => {
