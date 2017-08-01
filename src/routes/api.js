@@ -72,6 +72,9 @@ module.exports = function(app) {
       });
   });
 
+  /**
+   * Saves survey (e.g questions and answers) in same format as test/save-survey-route.js
+   */
   app.post('/api/v1/survey-model', (req, res) => {
     req.checkBody({
      'questions': {
