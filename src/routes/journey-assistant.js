@@ -18,10 +18,7 @@ module.exports = function(app) {
       $someUnusedVariable: #7ab55c;
 
       .question_div {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        background-color: red;
       }
     {% endstylesheet %}
      `;
