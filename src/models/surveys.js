@@ -29,12 +29,10 @@ const saveQuestionAndAnswers = (shopName, question, answers) => {
   });
 };
 
-const getAllQuestionsAndAnswers = (shop_url) => {
-  return shopModel.getShop(shop_url).then((shop) => {
-    const query = 'SELECT * FROM answers INNER JOIN questions USING (question_id) ' +
-      'INNER JOIN shops USING (shop_id) WHERE shop_url LIKE $1;';
-    return db.query(query, [shop_url]);
-  });
+const getAllQuestionsAndAnswers = (shopUrl) => {
+  const query = 'SELECT * FROM answers INNER JOIN questions USING (question_id) ' +
+    'INNER JOIN shops USING (shop_id) WHERE shop_url LIKE $1;';
+  return db.many(query, [shopUrl]);
 };
 
 module.exports = {
