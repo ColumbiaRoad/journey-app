@@ -28,7 +28,7 @@ describe('DB shops table /', function() {
 
   it('can insert and get question and multiple answers', function(done) {
     const dbname = 'testi3';
-    const answerList = [{answer:'yes!', variant:{a:1}}, {answer: "oui!", propertyValue:'vval'}];
+    const answerList = [{answer:'yes!', propertyValue:'sasd'}, {answer: "oui!", propertyValue:'vval'}];
     shopModel.saveShop(dbname, 'pesti').then((params) => {
       return surveyModel.saveQuestionAndAnswers(
         dbname, 'this will work!', 'rowID', 'prod id', answerList
