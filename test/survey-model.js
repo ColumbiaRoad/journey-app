@@ -12,7 +12,7 @@ describe('DB shops table /', function() {
     const dbname = 'testi2';
     shopModel.saveShop(dbname, 'pesti').then((params) => {
       return surveyModel.saveQuestionAndAnswers(
-        dbname, 'will this work?', 'rowID', 'prod id', [{answer:'yes!', propertyValue:'val'}]
+        dbname, 'will this work?', 'rowID', 'prod id', [{answer:'yes!', mapping:'val'}]
       );
     }).then((response) => {
       return shopModel.getShop(dbname);
@@ -28,7 +28,7 @@ describe('DB shops table /', function() {
 
   it('can insert and get question and multiple answers', function(done) {
     const dbname = 'testi3';
-    const answerList = [{answer:'yes!', propertyValue:'sasd'}, {answer: "oui!", propertyValue:'vval'}];
+    const answerList = [{answer:'yes!', mapping:'sasd'}, {answer: "oui!", mapping:'vval'}];
     shopModel.saveShop(dbname, 'pesti').then((params) => {
       return surveyModel.saveQuestionAndAnswers(
         dbname, 'this will work!', 'rowID', 'prod id', answerList

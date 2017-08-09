@@ -1,8 +1,7 @@
 const util = require('util');
 
-const validationError = (res, result) => {
-  const message = 'There have been validation errors: ' + util.inspect(result.array());
-  return res.status(400).send(message);
+const validationError = (result) => {
+  return 'There have been validation errors: ' + util.inspect(result.array());
 };
 
 //https://stackoverflow.com/questions/14446511/what-is-the-most-efficient-method-to-groupby-on-a-javascript-array-of-objects

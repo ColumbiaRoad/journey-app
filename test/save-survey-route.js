@@ -27,7 +27,7 @@ describe('POST /api/v1/survey-model', function() {
             answers: [
               {
                 answer: 'big',
-                propertyValue: 'valueeee'
+                mapping: 'valueeee'
               }
             ]
         }

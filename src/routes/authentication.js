@@ -30,7 +30,7 @@ module.exports = function(app) {
 
     req.getValidationResult().then(function(result) {
       if (!result.isEmpty()) {
-        return validationError(res, result);
+        return res.status(400).send(validationError(result));
       }
       let {hmac, shop, timestamp} = req.query;
       const shopifyToken = getShopifyToken();
@@ -58,7 +58,7 @@ module.exports = function(app) {
 
     req.getValidationResult().then(function(result) {
       if (!result.isEmpty()) {
-        return validationError(res, result);
+        return res.status(400).send(validationError(result));
       }
       const {code, hmac, timestamp, state, shop} = req.query;
       const shopifyToken = getShopifyToken();

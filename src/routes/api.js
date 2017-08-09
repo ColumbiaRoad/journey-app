@@ -82,7 +82,7 @@ module.exports = function(app) {
     }});
     req.getValidationResult().then((result) => {
       if (!result.isEmpty()) {
-        return validationError(res, result);
+        throw new Error(validationError(result));
       }
       const shopName = (req.auth) ? req.auth.shop : 'salashoppi'; // FOR TESTING
       return Promise.all(req.body.questions.map((questionObject) => {

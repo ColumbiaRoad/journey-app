@@ -24,7 +24,7 @@ const saveQuestionAndAnswers = (shopName, question, questionRowId, productId, an
           return (
             transaction.none(
               `INSERT INTO answers(question_id, answer, property_value) VALUES ($1, $2, $3);`,
-            [questionId, answer.answer, answer.propertyValue]));
+            [questionId, answer.answer, answer.mapping]));
           }));
       });
   });
