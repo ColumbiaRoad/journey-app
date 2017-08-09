@@ -3,7 +3,7 @@ exports.up = (pgm) => {
     {
       answer_id: 'SERIAL PRIMARY KEY',
       answer: 'varchar',
-      variant: 'json',
+      property_value: 'varchar',
       question_id: 'integer REFERENCES questions (question_id) ON DELETE CASCADE',
     }
   );

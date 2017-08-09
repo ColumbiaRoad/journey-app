@@ -87,7 +87,8 @@ module.exports = function(app) {
       const shopName = (req.auth) ? req.auth.shop : 'salashoppi'; // FOR TESTING
       return Promise.all(req.body.questions.map((questionObject) => {
         return surveyModel.saveQuestionAndAnswers(
-          shopName, questionObject.question, questionObject.answers
+          shopName, questionObject.question, questionObject.questionRowId,
+          questionObject.productId, questionObject.answers
         );
       }));
     })

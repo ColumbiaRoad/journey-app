@@ -5,7 +5,7 @@ const winston = require('winston'); // LOGGING
 
 module.exports = function(app) {
   const formatOneQuestion = (question) => {
-    return '<div class="question_div">' +
+    return '<div style="margin">' +
             '<h1>' + question[0].question + '</h1>' +
             question.map((r) => '<p>' + r.answer + '</p>').join(' ') +
            '</div>';
@@ -13,16 +13,6 @@ module.exports = function(app) {
 
   const createPage = (grouppedQuestions) => {
     let liquidHTML = '';
-    `
-    {% stylesheet 'scss' %}
-      $someUnusedVariable: #7ab55c;
-
-      .question_div {
-        background-color: red;
-      }
-    {% endstylesheet %}
-     `;
-
      Object.keys(grouppedQuestions).forEach((question) => {
        liquidHTML += formatOneQuestion(grouppedQuestions[question]);
      });

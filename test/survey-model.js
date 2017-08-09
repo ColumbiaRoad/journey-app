@@ -5,13 +5,14 @@ require('dotenv').config()
 const assert = require('assert');
 const shopModel = require('../src/models/shops');
 const surveyModel = require('../src/models/surveys');
+const winston = require('winston'); // LOGGING
 
 describe('DB shops table /', function() {
-  it('can insert question and aswer', function(done) {
+  it('can insert question and answer', function(done) {
     const dbname = 'testi2';
     shopModel.saveShop(dbname, 'pesti').then((params) => {
       return surveyModel.saveQuestionAndAnswers(
-        dbname, 'will this work?', [{answer:'yes!', variant:{}}]
+        dbname, 'will this work?', 'rowID', 'prod id', [{answer:'yes!', propertyValue:'val'}]
       );
     }).then((response) => {
       return shopModel.getShop(dbname);
@@ -20,15 +21,17 @@ describe('DB shops table /', function() {
       return shopModel.deleteShop(dbname);
     }).then((response) => {
       done();
+    }).catch((err) => {
+      winston.error(err);
     });
   });
 
   it('can insert and get question and multiple answers', function(done) {
     const dbname = 'testi3';
-    const answerList = [{answer:'yes!', variant:{a:1}}, {answer: "oui!", variant:{b:2, c:"c"}}];
+    const answerList = [{answer:'yes!', variant:{a:1}}, {answer: "oui!", propertyValue:'vval'}];
     shopModel.saveShop(dbname, 'pesti').then((params) => {
       return surveyModel.saveQuestionAndAnswers(
-        dbname, 'this will work!', answerList
+        dbname, 'this will work!', 'rowID', 'prod id', answerList
       );
     }).then((response) => {
       return surveyModel.getAllQuestionsAndAnswers(dbname);
