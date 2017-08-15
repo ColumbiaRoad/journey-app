@@ -19,21 +19,22 @@ function getJWTToken(shop) {
 describe('POST /api/v1/survey-model', function() {
   it('Can save survey via api', (done) => {
     const bodyJson = {
+      productId: 'id',      
       questions: [
-          {
-            question: 'big or small?',
-            productId: 'id',
-            questionRowId: 'sdsds',
-            answers: [
-              {
-                answer: 'big',
-                mapping: 'valueeee'
-              }
-            ]
+        {
+          question: 'big or small?',
+          optionId: 'asdf',
+          answerMapping: [
+            {
+              id: 'foobar',
+              answer: 'big',
+              value: 'valueeee'
+            }
+          ]
         }
       ]
     };
-    const token = getJWTToken('testishoppi');
+    const token = getJWTToken('testshop');
     request(app)
       .post('/api/v1/survey-model')
       .set('Authorization', `Bearer ${token}`)
