@@ -9,22 +9,22 @@ const shopModel = require('./shops');
  * @param  {[array]} answers   Array containing objects like {answer: '', variant: {}}
  * @return {[promise]}
  */
-const saveQuestionAndAnswers = (shopName, question, questionRowId, productId, answers) => {
+const saveQuestionAndAnswers = (shopName, surveyId, productId, question, optionId, answerMapping) => {
   return shopModel.getShop(shopName).then((shop) => {
     if (shop.length < 1) {
       throw new Error('No shop found with name: ' + shopName);
     }
-    return db.query('INSERT INTO questions(question, shop_id, question_row_id, product_id) '+
+    return db.query('INSERT INTO questions(question, product_id, option_id, survey_id) '+
       'VALUES($1, $2, $3, $4) RETURNING question_id;',
-      [question, shop[0].shop_id, questionRowId, productId]);
+      [question, productId, optionId, surveyId]);
   }).then((addedQuestion) => {
     const questionId = addedQuestion[0].question_id;
     return db.tx(transaction => {
-      return transaction.batch(answers.map((answer) => {
+      return transaction.batch(answerMapping.map((mapping) => {
           return (
             transaction.none(
-              `INSERT INTO answers(question_id, answer, property_value) VALUES ($1, $2, $3);`,
-            [questionId, answer.answer, answer.mapping]));
+              `INSERT INTO answers(answer, property_value, answer_row_id, question_id) VALUES ($1, $2, $3, $4);`,
+            [mapping.answer, mapping.value, mapping.id, questionId]));
           }));
       });
   });
