@@ -1,6 +1,6 @@
 
 const utils = require('../helpers/utils');
-const surveyModel = require('../models/surveys');
+const questionnaireModel = require('../models/questionnaire');
 const winston = require('winston'); // LOGGING
 
 module.exports = function(app) {
@@ -21,7 +21,7 @@ module.exports = function(app) {
 
   app.get('/journey-assistant', function(req, res) {
     const shopUrl = req.query.shop;
-    surveyModel.getAllQuestionsAndAnswers(shopUrl).then((model) => {
+    questionnaireModel.getAllQuestionsAndAnswers(shopUrl).then((model) => {
       if (model.length < 1) {
         const message = `No shop ${shopName} found.`;
         winston.error(message);

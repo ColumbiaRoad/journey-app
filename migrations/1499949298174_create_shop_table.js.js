@@ -1,5 +1,5 @@
 exports.up = (pgm) => {
-  pgm.createTable('shops',
+  pgm.createTable('shop',
     {
       shop_id: 'SERIAL PRIMARY KEY',
       shop_url: 'varchar UNIQUE',
@@ -9,5 +9,5 @@ exports.up = (pgm) => {
 };
 
 exports.down = (pgm) => {
-  pgm.dropTable('shops');
+  pgm.dropTable('shop');
 };

@@ -3,7 +3,7 @@
 require('dotenv').config()
 
 const assert = require('assert');
-const shopModel = require('../src/models/shops');
+const shopModel = require('../src/models/shop');
 
 describe('DB shops table /', function() {
   it('can insert', function(done) {

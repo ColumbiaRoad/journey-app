@@ -7,7 +7,7 @@ const app = express();
 const assert = require('assert');
 const jwt = require('jsonwebtoken');
 
-const shopModel = require('../src/models/shops');
+const shopModel = require('../src/models/shop');
 
 function getJWTToken(shop) {
   const payload = {
@@ -16,7 +16,7 @@ function getJWTToken(shop) {
   return jwt.sign(payload, process.env.SHOPIFY_APP_SECRET, { expiresIn: '3h' });
 }
 
-describe('POST /api/v1/survey-model', function() {
+describe('POST /api/v1/questionnaire', function() {
   it('Can save survey via api', (done) => {
     const bodyJson = {
       productId: 'id',      
@@ -36,7 +36,7 @@ describe('POST /api/v1/survey-model', function() {
     };
     const token = getJWTToken('testshop');
     request(app)
-      .post('/api/v1/survey-model')
+      .post('/api/v1/questionnaire')
       .set('Authorization', `Bearer ${token}`)
       .send(bodyJson)
       .expect(200)
