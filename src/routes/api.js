@@ -1,43 +1,8 @@
-const Shopify = require('shopify-api-node');
-const shopModel = require('../models/shop');
+
+const getShopifyInstance = require('../helpers/shopifyHelper').getShopifyInstance;
 const winston = require('winston'); // LOGGING
 const questionnaireModel = require('../models/questionnaire');
 const validationError = require('../helpers/utils').validationError;
-
-let shopify = undefined;
-
-function getShopifyInstance(shop) {
-  return new Promise((resolve, reject) => {
-    if(shopify === undefined) {
-      shopModel.getShop(shop)
-      .then((result) => {
-        winston.info(`Shops matching: ${result.length}`);
-        // Currently shops aren't deleted so there can be multiple tokens.
-        // If so, take latest
-        const shop = result.length > 0 ? result.pop() : undefined;
-        if(shop !== undefined) {
-          shopify = new Shopify({
-            shopName: shop.shop_url.split('.')[0],
-            accessToken: shop.access_token,
-            autoLimit: true
-          });
-          resolve(shopify);
-        } else {
-          reject({
-            message: 'Unkown shop'
-          });
-        }
-      })
-      .catch((err) => {
-        winston.error(err);
-        reject(err);
-      });
-    } else {
-      resolve(shopify);
-    }
-  });
-
-}
 
 module.exports = function(app) {
   app.get('/api/v1/products', (req, res) => {
