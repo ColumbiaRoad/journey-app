@@ -9,15 +9,8 @@ describe('shop model', function() {
   let token;
 
   before(function() {
-    // Clear table before starting
-    db.query('DELETE FROM shop');
     shopName = 'testShop';
     token = 'someAccessToken';
-  });
-
-  after(function() {
-    // Clean up
-    db.query('DELETE FROM shop');
   });
 
   it('save new shop', function(done) {
