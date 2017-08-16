@@ -5,7 +5,7 @@ const winston = require('winston'); // LOGGING
 
 module.exports = function(app) {
   const formatOneQuestion = (question) => {
-    return '<div style="margin">' +
+    return '<div style="text-align:center;">' +
             '<h1>' + question[0].question + '</h1>' +
             question.map((r) => '<p>' + r.answer + '</p>').join(' ') +
            '</div>';
@@ -23,7 +23,7 @@ module.exports = function(app) {
     const shopUrl = req.query.shop;
     questionnaireModel.getAllQuestionsAndAnswers(shopUrl).then((model) => {
       if (model.length < 1) {
-        const message = `No shop ${shopName} found.`;
+        const message = `No shop ${shopUrl} found.`;
         winston.error(message);
         return res.status(400).send(message);
       }
