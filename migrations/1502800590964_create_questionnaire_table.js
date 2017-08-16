@@ -2,7 +2,7 @@ exports.up = (pgm) => {
   pgm.createTable('questionnaire',
     {
       questionnaire_id: 'SERIAL PRIMARY KEY',
-      shop_id: 'integer REFERENCES shop (shop_id) ON DELETE CASCADE',
+      shop: 'varchar REFERENCES shop (shop_url) ON DELETE CASCADE'
     }
   );
 };
