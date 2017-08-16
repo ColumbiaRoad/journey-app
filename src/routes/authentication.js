@@ -3,7 +3,7 @@ const winston = require('winston'); // LOGGING
 const redis = require('../helpers/redisHelper');
 const ShopifyToken = require('shopify-token');
 const shopModel = require('../models/shop');
-const jwt = require('jsonwebtoken');
+const getJWTToken = require('../helpers/utils').getJWTToken;
 const validationError = require('../helpers/utils').validationError;
 
 const getShopifyToken = () => {
@@ -13,13 +13,6 @@ const getShopifyToken = () => {
     apiKey: process.env.SHOPIFY_API_KEY
   });
 };
-
-function getJWTToken(shop) {
-  const payload = {
-    shop: shop
-  };
-  return jwt.sign(payload, process.env.SHOPIFY_APP_SECRET, { expiresIn: '3h' });
-}
 
 module.exports = function(app) {
 

@@ -1,4 +1,5 @@
 const util = require('util');
+const jwt = require('jsonwebtoken');
 
 const validationError = (result) => {
   return 'There have been validation errors: ' + util.inspect(result.array());
@@ -12,7 +13,14 @@ const groupBy = (xs, key) => {
   }, {});
 };
 
+const getJWTToken = (shop) => {
+  const payload = {
+    shop: shop
+  };
+  return jwt.sign(payload, process.env.SHOPIFY_APP_SECRET, { expiresIn: '3h' });
+}
+
 
 module.exports = {
-  validationError, groupBy
+  validationError, groupBy, getJWTToken
 };
