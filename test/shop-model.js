@@ -9,7 +9,7 @@ describe('shop model', function() {
   let token;
 
   before(function() {
-    shopName = 'testShop';
+    shopName = 'shopModelTest';
     token = 'someAccessToken';
   });
 
