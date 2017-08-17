@@ -1,50 +1,180 @@
 
+const _ = require('lodash');
 const db = require('./db').getDBInstance();
 const shopModel = require('./shop');
 
 /**
- * Saves to db
- * @param  {[string]} shopName
- * @param  {[string]} questionnaireId
- * @param  {[string]} productId
- * @param  {[string]} question  Like "do you want women or mens bike?"
- * @param  {[string]} optionId
- * @param  {[array]} answerMapping   Array containing objects like {id: '', answer: '', value: ''}
- * @return {[promise]}
+ * Creates empty questionnaire.
+ * @param  {string} shopUrl
+ * @return {promise}
  */
-const saveQuestionAndAnswers = (shopName, questionnaireId, productId, question, optionId, answerMapping) => {
-  return shopModel.getShop(shopName).then((shop) => {
-    if (shop.length < 1) {
-      throw new Error('No shop found with name: ' + shopName);
-    }
-    return db.query('INSERT INTO question(question, product_id, option_id, questionnaire_id) '+
-      'VALUES($1, $2, $3, $4) RETURNING question_id;',
-      [question, productId, optionId, questionnaireId]);
-  }).then((addedQuestion) => {
-    const questionId = addedQuestion[0].question_id;
-    return db.tx(transaction => {
-      return transaction.batch(answerMapping.map((mapping) => {
-          return (
-            transaction.none(
-              `INSERT INTO answer(answer, property_value, answer_row_id, question_id) VALUES ($1, $2, $3, $4);`,
-            [mapping.answer, mapping.value, mapping.id, questionId]));
-          }));
+function createQuestionnaire(shopUrl) {
+  return db.one('INSERT INTO questionnaire(shop) VALUES($1) RETURNING questionnaire_id;', shopUrl);
+};
+
+/**
+ * Saves complete questionnaire. Returns object for questionnaire ID, as well as
+ * each saved question, excluding the root question.
+ * @param  {string} questionnaireId
+ * @param  {object} questionnnaire
+ * @return {promise}
+ */
+function saveQuestionnaire(questionnaireId, questionnaire) {
+  return db.task(t => {
+    return saveQuestionAndAnswers(questionnaireId, undefined, questionnaire.rootQuestion.question,
+      undefined, questionnaire.rootQuestion.answerMapping, t)
+    .then((result) => {
+      return t.none('UPDATE questionnaire SET root_question_id = $1 WHERE questionnaire_id = $2;',
+        [result.questionId, questionnaireId]);
+    })
+    .then(() => {
+      return questionnaire.selectedProducts.map((product) => {
+        return product.questions.map((questionItem) => {
+          return saveQuestionAndAnswers(questionnaireId, product.productId, questionItem.question,
+            questionItem.option, questionItem.answerMapping, t);
+        });
       });
+    });
+  })
+  .then((data) => {
+    const flat = [].concat.apply([], data);
+    flat.push(new Promise((resolve) => {resolve({ questionnaireId })}));
+    return Promise.all(flat);;
+  });
+}
+
+/**
+ * Saves single question object including its answers. Pass pg-promise task if
+ * called withing a batch operation
+ * @param  {string} questionnaireId
+ * @param  {string} productId
+ * @param  {string} question  Like "do you want women or mens bike?"
+ * @param  {string} optionId
+ * @param  {[object]} answerMapping   Array containing objects like {id: '', answer: '', value: ''}
+ * @param  {task} task task from pg-promise library
+ * @return {promise}
+ */
+function saveQuestionAndAnswers(questionnaireId, productId, question, optionId, answerMapping, task=db) {
+  return task.task(t => {
+    return t.one('INSERT INTO question(question, product_id, option_id, questionnaire_id) '+
+        'VALUES($1, $2, $3, $4) RETURNING question_id;',
+        [question, productId, optionId, questionnaireId])
+    .then((addedQuestion) => {
+      const questionId = addedQuestion.question_id;
+      return t.tx(transaction => {
+        return transaction.batch(answerMapping.map((mapping) => {
+            return (
+              transaction.one(
+                'INSERT INTO answer(answer, property_value, answer_row_id, question_id) VALUES ($1, $2, $3, $4) RETURNING question_id;',
+              [mapping.answer, mapping.value, mapping.id, questionId])
+            );
+        }));
+      });
+    });
+  })
+  .then((result) => {
+    return { questionId: result[0].question_id, savedAnswers: result.length };
   });
 };
 
-const getAllQuestionnaires = (shopUrl) => {
-  const query = 'SELECT questionnaire_id FROM questionnaire INNER JOIN shop USING  (shop_id) ' +
-    'WHERE shop_url = $1;';
-  return db.many(query, [shopUrl]);
-};
-
-const getQuestionnaire = (questionnaireId) => {
+/**
+ * Retrieves questionnaire object. If successful, questionnaire is returned in the same
+ * format as it is saved.
+ * @param  {string} questionnaireId
+ * @return {promise}
+ */
+function getQuestionnaire(questionnaireId) {
   const query = 'SELECT * FROM questionnaire INNER JOIN question USING (questionnaire_id) ' +
     'INNER JOIN answer USING (question_id) WHERE questionnaire_id = $1;';
-  return results = db.many(query, [questionnaireId]);
+  return results = db.any(query, questionnaireId)
+  .then((result) => {
+    const rootQuestion = result.filter(e => e.question_id === e.root_question_id);
+    const products = _.groupBy(result.filter(e => e.question_id !== e.root_question_id),
+      (e) => { return e.product_id });
+    const questionnaire = {};
+
+    questionnaire.rootQuestion = {
+      question: rootQuestion[0] ? rootQuestion[0].question : '',
+      answerMapping: rootQuestion.map((e) => {
+        return {
+          id: e.answer_row_id,
+          answer: e.answer,
+          value: e.property_value
+        }
+      })
+    };
+    questionnaire.selectedProducts = Object.keys(products).map((key) => {
+      const questions = _.groupBy(products[key], e => e.option_id);
+      return {
+        productId: key,
+        questions: Object.keys(questions).map((qKey) => {
+          return {
+            option: questions[qKey][0].option_id,
+            question: questions[qKey][0].question,
+            answerMapping: questions[qKey].map((e) => {
+              return {
+                id: e.answer_row_id,
+                answer: e.answer,
+                value: e.property_value
+              };
+            })
+          };
+        })
+      };
+    });
+    // Return object as promise
+    return new Promise((resolve) => { resolve(questionnaire) });
+  });
+}
+
+/**
+ * Retrieves IDs of all questionnaires of a shop. 
+ * @param  {string} shopUrl
+ * @return {[promise]}
+ */
+function getAllQuestionnaires(shopUrl) {
+  const query = 'SELECT * FROM questionnaire INNER JOIN shop ON questionnaire.shop = shop.shop_url ' +
+    'WHERE shop_url = $1;';
+  return db.any(query, shopUrl);
+};
+
+/**
+ * Updates existing questionnaire. Deletes all question as well as answer mappings including
+ * root question and saves updated questions as new ones.
+ * @param  {string} questionnaireId
+ * @param  {object} updatedQuestionnaire
+ * @return {[promise]}
+ */
+function updateQuestionnaire(questionnaireId, updatedQuestionnaire) {
+  return db.tx(transaction => {
+    const q1 = transaction.none('UPDATE questionnaire SET root_question_id = null WHERE questionnaire_id = $1;', questionnaireId);
+    const q2 = transaction.none('DELETE from question WHERE questionnaire_id = $1', questionnaireId);
+    return transaction.batch([q1, q2]);
+  })
+  .then(() => {
+    return saveQuestionnaire(questionnaireId, updatedQuestionnaire);
+  })
+  .then((result) => {
+    return result;
+  });
+}
+
+/**
+ * Deletes questionnaire. Returns ID of deleted questionnaire or null if nothing was deleted.
+ * @param  {string} questionnaireId
+ * @return {promise}
+ */
+function deleteQuestionnaire(questionnaireId) {
+  const query = 'DELETE from questionnaire WHERE questionnaire_id = $1 RETURNING questionnaire_id;';
+  return db.oneOrNone(query, questionnaireId)
 }
 
 module.exports = {
-  saveQuestionAndAnswers
+  createQuestionnaire,
+  saveQuestionnaire,
+  saveQuestionAndAnswers,
+  getQuestionnaire,
+  getAllQuestionnaires,
+  updateQuestionnaire,
+  deleteQuestionnaire
 };
