@@ -9,7 +9,15 @@ const shopModel = require('./shop');
  * @return {promise}
  */
 function createQuestionnaire(shopUrl) {
-  return db.one('INSERT INTO questionnaire(shop) VALUES($1) RETURNING questionnaire_id;', shopUrl);
+  return new Promise((resolve, reject) => {
+    db.one('INSERT INTO questionnaire(shop) VALUES($1) RETURNING questionnaire_id;', shopUrl)
+    .then((result) => {
+      resolve({ questionnaireId: result.questionnaire_id });
+    })
+    .catch((err) => {
+      reject({ error: 'could not create questionnaire' });
+    });
+  });
 };
 
 /**
@@ -20,26 +28,31 @@ function createQuestionnaire(shopUrl) {
  * @return {promise}
  */
 function saveQuestionnaire(questionnaireId, questionnaire) {
-  return db.task(t => {
-    return saveQuestionAndAnswers(questionnaireId, undefined, questionnaire.rootQuestion.question,
-      undefined, questionnaire.rootQuestion.answerMapping, t)
-    .then((result) => {
-      return t.none('UPDATE questionnaire SET root_question_id = $1 WHERE questionnaire_id = $2;',
-        [result.questionId, questionnaireId]);
-    })
-    .then(() => {
-      return questionnaire.selectedProducts.map((product) => {
-        return product.questions.map((questionItem) => {
-          return saveQuestionAndAnswers(questionnaireId, product.productId, questionItem.question,
-            questionItem.option, questionItem.answerMapping, t);
+  return new Promise((resolve, reject) => {
+    db.task(t => {
+      return saveQuestionAndAnswers(questionnaireId, undefined, questionnaire.rootQuestion.question,
+        undefined, questionnaire.rootQuestion.answerMapping, t)
+      .then((result) => {
+        return t.none('UPDATE questionnaire SET root_question_id = $1 WHERE questionnaire_id = $2;',
+          [result.questionId, questionnaireId]);
+      })
+      .then(() => {
+        return questionnaire.selectedProducts.map((product) => {
+          return product.questions.map((questionItem) => {
+            return saveQuestionAndAnswers(questionnaireId, product.productId, questionItem.question,
+              questionItem.option, questionItem.answerMapping, t);
+          });
         });
       });
+    })
+    .then((data) => {
+      const flat = [].concat.apply([], data);
+      flat.push(new Promise((resolve) => {resolve({ questionnaireId })}));
+      resolve(Promise.all(flat));
+    })
+    .catch((err) => {
+      reject({ error: 'could not save questionnaire' });
     });
-  })
-  .then((data) => {
-    const flat = [].concat.apply([], data);
-    flat.push(new Promise((resolve) => {resolve({ questionnaireId })}));
-    return Promise.all(flat);;
   });
 }
 
@@ -55,25 +68,30 @@ function saveQuestionnaire(questionnaireId, questionnaire) {
  * @return {promise}
  */
 function saveQuestionAndAnswers(questionnaireId, productId, question, optionId, answerMapping, task=db) {
-  return task.task(t => {
-    return t.one('INSERT INTO question(question, product_id, option_id, questionnaire_id) '+
-        'VALUES($1, $2, $3, $4) RETURNING question_id;',
-        [question, productId, optionId, questionnaireId])
-    .then((addedQuestion) => {
-      const questionId = addedQuestion.question_id;
-      return t.tx(transaction => {
-        return transaction.batch(answerMapping.map((mapping) => {
-            return (
-              transaction.one(
-                'INSERT INTO answer(answer, property_value, answer_row_id, question_id) VALUES ($1, $2, $3, $4) RETURNING question_id;',
-              [mapping.answer, mapping.value, mapping.id, questionId])
-            );
-        }));
+  return new Promise((resolve, reject) => {
+    task.task(t => {
+      return t.one('INSERT INTO question(question, product_id, option_id, questionnaire_id) '+
+          'VALUES($1, $2, $3, $4) RETURNING question_id;',
+          [question, productId, optionId, questionnaireId])
+      .then((addedQuestion) => {
+        const questionId = addedQuestion.question_id;
+        return t.tx(transaction => {
+          return transaction.batch(answerMapping.map((mapping) => {
+              return (
+                transaction.one(
+                  'INSERT INTO answer(answer, property_value, answer_row_id, question_id) VALUES ($1, $2, $3, $4) RETURNING question_id;',
+                [mapping.answer, mapping.value, mapping.id, questionId])
+              );
+          }));
+        });
       });
+    })
+    .then((result) => {
+      resolve({ questionId: result[0].question_id, savedAnswers: result.length });
+    })
+    .catch((err) => {
+      reject({ error: 'could not save question and its answers' });
     });
-  })
-  .then((result) => {
-    return { questionId: result[0].question_id, savedAnswers: result.length };
   });
 };
 
@@ -86,44 +104,48 @@ function saveQuestionAndAnswers(questionnaireId, productId, question, optionId, 
 function getQuestionnaire(questionnaireId) {
   const query = 'SELECT * FROM questionnaire INNER JOIN question USING (questionnaire_id) ' +
     'INNER JOIN answer USING (question_id) WHERE questionnaire_id = $1;';
-  return results = db.any(query, questionnaireId)
-  .then((result) => {
-    const rootQuestion = result.filter(e => e.question_id === e.root_question_id);
-    const products = _.groupBy(result.filter(e => e.question_id !== e.root_question_id),
-      (e) => { return e.product_id });
-    const questionnaire = {};
+  return new Promise((resolve, reject) => {
+    results = db.any(query, questionnaireId)
+    .then((result) => {
+      const rootQuestion = result.filter(e => e.question_id === e.root_question_id);
+      const products = _.groupBy(result.filter(e => e.question_id !== e.root_question_id),
+        (e) => { return e.product_id });
+      const questionnaire = {};
 
-    questionnaire.rootQuestion = {
-      question: rootQuestion[0] ? rootQuestion[0].question : '',
-      answerMapping: rootQuestion.map((e) => {
-        return {
-          id: e.answer_row_id,
-          answer: e.answer,
-          value: e.property_value
-        }
-      })
-    };
-    questionnaire.selectedProducts = Object.keys(products).map((key) => {
-      const questions = _.groupBy(products[key], e => e.option_id);
-      return {
-        productId: key,
-        questions: Object.keys(questions).map((qKey) => {
+      questionnaire.rootQuestion = {
+        question: rootQuestion[0] ? rootQuestion[0].question : '',
+        answerMapping: rootQuestion.map((e) => {
           return {
-            option: questions[qKey][0].option_id,
-            question: questions[qKey][0].question,
-            answerMapping: questions[qKey].map((e) => {
-              return {
-                id: e.answer_row_id,
-                answer: e.answer,
-                value: e.property_value
-              };
-            })
-          };
+            id: e.answer_row_id,
+            answer: e.answer,
+            value: e.property_value
+          }
         })
       };
+      questionnaire.selectedProducts = Object.keys(products).map((key) => {
+        const questions = _.groupBy(products[key], e => e.option_id);
+        return {
+          productId: key,
+          questions: Object.keys(questions).map((qKey) => {
+            return {
+              option: questions[qKey][0].option_id,
+              question: questions[qKey][0].question,
+              answerMapping: questions[qKey].map((e) => {
+                return {
+                  id: e.answer_row_id,
+                  answer: e.answer,
+                  value: e.property_value
+                };
+              })
+            };
+          })
+        };
+      });
+      resolve(questionnaire);
+    })
+    .catch((err) => {
+      reject({ error: 'could not retrieve questionnaire' });
     });
-    // Return object as promise
-    return new Promise((resolve) => { resolve(questionnaire) });
   });
 }
 
@@ -135,7 +157,15 @@ function getQuestionnaire(questionnaireId) {
 function getAllQuestionnaires(shopUrl) {
   const query = 'SELECT * FROM questionnaire INNER JOIN shop ON questionnaire.shop = shop.shop_url ' +
     'WHERE shop_url = $1;';
-  return db.any(query, shopUrl);
+  return new Promise((resolve, reject) => {
+    db.any(query, shopUrl)
+    .then((result) => {
+      resolve(result);
+    })
+    .catch((err) => {
+      reject({ error: 'could not get questionnaires' });
+    });
+  });
 };
 
 /**
@@ -146,27 +176,41 @@ function getAllQuestionnaires(shopUrl) {
  * @return {[promise]}
  */
 function updateQuestionnaire(questionnaireId, updatedQuestionnaire) {
-  return db.tx(transaction => {
-    const q1 = transaction.none('UPDATE questionnaire SET root_question_id = null WHERE questionnaire_id = $1;', questionnaireId);
-    const q2 = transaction.none('DELETE from question WHERE questionnaire_id = $1', questionnaireId);
-    return transaction.batch([q1, q2]);
-  })
-  .then(() => {
-    return saveQuestionnaire(questionnaireId, updatedQuestionnaire);
-  })
-  .then((result) => {
-    return result;
+  return new Promise((resolve, reject) => {
+    db.tx(transaction => {
+      const q1 = transaction.none('UPDATE questionnaire SET root_question_id = null WHERE questionnaire_id = $1;', questionnaireId);
+      const q2 = transaction.none('DELETE from question WHERE questionnaire_id = $1', questionnaireId);
+      return transaction.batch([q1, q2]);
+    })
+    .then(() => {
+      return saveQuestionnaire(questionnaireId, updatedQuestionnaire);
+    })
+    .then((result) => {
+      resolve(result);
+    })
+    .catch((err) => {
+      reject({ error: 'coult not update questionnaire' });
+    });
   });
 }
 
 /**
- * Deletes questionnaire. Returns ID of deleted questionnaire or null if nothing was deleted.
+ * Deletes questionnaire. Returns ID of deleted questionnaire or -1 if nothing was deleted.
  * @param  {string} questionnaireId
  * @return {promise}
  */
 function deleteQuestionnaire(questionnaireId) {
   const query = 'DELETE from questionnaire WHERE questionnaire_id = $1 RETURNING questionnaire_id;';
-  return db.oneOrNone(query, questionnaireId)
+  return new Promise((resolve, reject) => {
+    db.oneOrNone(query, questionnaireId)
+    .then((result) => {
+      resolve({ questionnaireId: result ? result.questionnaire_id : -1 });
+    })
+    .catch((err) => {
+      console.log(err);
+      reject({ error: 'could not delete questionnaire' });
+    });
+  });
 }
 
 module.exports = {

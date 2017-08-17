@@ -13,65 +13,46 @@ describe('shop model', function() {
     token = 'someAccessToken';
   });
 
-  it('save new shop', function(done) {
-    shopModel.saveShop(shopName, token)
+  it('save new shop', function() {
+    return shopModel.saveShop(shopName, token)
     .then(function(result) {
-      expect(result).to.be(null);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
+      expect(result).to.be(undefined);
     });
   });
 
-  it('get existing shop', function(done) {
-    shopModel.getShop(shopName)
+  it('get existing shop', function() {
+    return shopModel.getShop(shopName)
     .then(function(shop) {
       expect(shop.shop_url).to.be(shopName);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('get non-exsiting shop', function(done) {
-    shopModel.getShop('foo')
+  it('get non-exsiting shop', function() {
+    return shopModel.getShop('foo')
     .then(function(shop) {
-      expect(shop).not.to.be.ok();
-      done();
-    })
-    .catch(function(err) {
-      done(err);
+      expect(shop).to.be(null);
     });
   });
 
-  it('update access token', function(done) {
-    shopModel.saveShop(shopName, 'newToken')
+  it('update access token', function() {
+    return shopModel.saveShop(shopName, 'newToken')
     .then(function(result) {
       return shopModel.getShop(shopName);
     })
     .then(function(shop) {
       expect(shop.access_token).not.to.be(token);
       expect(shop.access_token).to.be('newToken');
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('delete shop', function(done) {
-    shopModel.deleteShop(shopName)
+  it('delete shop', function() {
+    return shopModel.deleteShop(shopName)
     .then(function(result) {
+      expect(result).to.be(undefined);
       return shopModel.getShop(shopName);
     })
     .then(function(shop) {
       expect(shop).to.be(null);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 });

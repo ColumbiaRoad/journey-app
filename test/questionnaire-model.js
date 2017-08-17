@@ -81,40 +81,32 @@ describe('questionnaire model', function() {
     });
   });
 
-  it('create new questionaire', function(done) {
-    questionnaireModel.createQuestionnaire(shopName)
+  it('create new questionaire', function() {
+    return questionnaireModel.createQuestionnaire(shopName)
     .then(function(result) {
-      expect(result.questionnaire_id).to.be.a('number');
-      done();
-    })
-    .catch(function(err) {
-      done(err);
+      expect(result.questionnaireId).to.be.a('number');
     });
   });
 
-  it('save single question without passing task', function(done) {
-    questionnaireModel.createQuestionnaire(shopName)
+  it('save single question without passing task', function() {
+    return questionnaireModel.createQuestionnaire(shopName)
     .then(function(result) {
       const productId = questionnaire.selectedProducts[1].productId;
       const questionItem = questionnaire.selectedProducts[1].questions[0];
-      return questionnaireModel.saveQuestionAndAnswers(result.questionnaire_id,
+      return questionnaireModel.saveQuestionAndAnswers(result.questionnaireId,
         productId, questionItem.question, questionItem.option, questionItem.answerMapping
       );
     })
     .then(function(result) {
       expect(result.questionId).to.be.above(-1);
       expect(result.savedAnswers).to.be(3);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('save questionnaire', function(done) {
-    questionnaireModel.createQuestionnaire(shopName)
+  it('save questionnaire', function() {
+    return questionnaireModel.createQuestionnaire(shopName)
     .then(function(result) {
-      return questionnaireModel.saveQuestionnaire(result.questionnaire_id, questionnaire);
+      return questionnaireModel.saveQuestionnaire(result.questionnaireId, questionnaire);
     })
     .then(function(savedQuestionnaire) {
       const savedQuestions = savedQuestionnaire.filter(e => e.questionId);
@@ -124,17 +116,13 @@ describe('questionnaire model', function() {
         return sum + elem.savedAnswers;
       }, 0)).to.be(7);
       expect(questionnaire.questionnaireId).to.be.above(-1);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('get existing questionnaire', function(done) {
-    questionnaireModel.createQuestionnaire(shopName)
+  it('get existing questionnaire', function() {
+    return questionnaireModel.createQuestionnaire(shopName)
     .then(function(result) {
-      return questionnaireModel.saveQuestionnaire(result.questionnaire_id, questionnaire);
+      return questionnaireModel.saveQuestionnaire(result.questionnaireId, questionnaire);
     })
     .then(function(result) {
       const questionnaire = result.find(e => e.questionnaireId);
@@ -142,15 +130,11 @@ describe('questionnaire model', function() {
     })
     .then(function(result) {
       expect(result).to.eql(questionnaire);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('get non-existing questionnaire', function(done) {
-    questionnaireModel.getQuestionnaire(-1)
+  it('get non-existing questionnaire', function() {
+    return questionnaireModel.getQuestionnaire(-1)
     .then(function(result) {
       const emptyQuestionnaire = {
         rootQuestion: {
@@ -160,15 +144,11 @@ describe('questionnaire model', function() {
         selectedProducts: []
       };
       expect(result).to.eql(emptyQuestionnaire);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('get all questionnaires of a shop', function(done) {
-    questionnaireModel.createQuestionnaire(otherShopName)
+  it('get all questionnaires of a shop', function() {
+    return questionnaireModel.createQuestionnaire(otherShopName)
     .then(function(result) {
       return questionnaireModel.createQuestionnaire(otherShopName);
     })
@@ -180,14 +160,10 @@ describe('questionnaire model', function() {
     })
     .then(function(result) {
       expect(result.length).to.be(3);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('update existing questionnaire', function(done) {
+  it('update existing questionnaire', function() {
     const updatedQuestionnaire = {
       rootQuestion: {
         question: 'What are you looking for?',
@@ -233,9 +209,9 @@ describe('questionnaire model', function() {
         }
       ]
     };
-    questionnaireModel.createQuestionnaire(shopName)
+    return questionnaireModel.createQuestionnaire(shopName)
     .then(function(result) {
-      return questionnaireModel.saveQuestionnaire(result.questionnaire_id, questionnaire);
+      return questionnaireModel.saveQuestionnaire(result.questionnaireId, questionnaire);
     })
     .then(function(result) {
       const questionnaireId = result.find(e => e.questionnaireId).questionnaireId;
@@ -252,24 +228,20 @@ describe('questionnaire model', function() {
     })
     .then(function(result) {
       expect(result).to.eql(updatedQuestionnaire);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('delete existing questionnaire', function(done) {
-    questionnaireModel.createQuestionnaire(shopName)
+  it('delete existing questionnaire', function() {
+    return questionnaireModel.createQuestionnaire(shopName)
     .then(function(result) {
-      return questionnaireModel.saveQuestionnaire(result.questionnaire_id, questionnaire);
+      return questionnaireModel.saveQuestionnaire(result.questionnaireId, questionnaire);
     })
     .then(function(result) {
       const questionnaireId = result.find(e => e.questionnaireId).questionnaireId;
       return questionnaireModel.deleteQuestionnaire(questionnaireId);
     })
     .then(function(result) {
-      return questionnaireModel.getQuestionnaire(result.questionnaire_id);
+      return questionnaireModel.getQuestionnaire(result.questionnaireId);
     })
     .then(function(result) {
       const emptyQuestionnaire = {
@@ -280,21 +252,13 @@ describe('questionnaire model', function() {
         selectedProducts: []
       };
       expect(result).to.eql(emptyQuestionnaire);
-      done();
-    })
-    .catch(function(err) {
-      done(err);
     });
   });
 
-  it('delete non-existing questionnaire', function(done) {
-    questionnaireModel.deleteQuestionnaire(-1)
+  it('delete non-existing questionnaire', function() {
+    return questionnaireModel.deleteQuestionnaire(-1)
     .then(function(result) {
-      expect(result).not.to.be.ok();
-      done();
-    })
-    .catch(function(err) {
-      done(err);
+      expect(result.questionnaireId).to.be(-1);
     });
   });
 
