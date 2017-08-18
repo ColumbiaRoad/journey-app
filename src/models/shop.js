@@ -16,7 +16,7 @@ const saveShop = (shopUrl, accessToken) => {
       resolve();
     })
     .catch((err) => {
-      reject({ error: 'could not save shop' });
+      reject({ error: 'unable to save shop' });
     });
   });
 };
@@ -33,7 +33,7 @@ const getShop = (shopUrl) => {
       resolve(result);
     })
     .catch((err) => {
-      reject({ error: 'could not retrieve shop' });
+      reject({ error: 'unable to retrieve shop' });
     });
   });
 };
@@ -50,7 +50,7 @@ const deleteShop = (shopUrl) => {
       resolve();
     })
     .catch((err) => {
-      reject({ error: 'could not delete shop' });
+      reject({ error: 'unable to delete shop' });
     });
   });
 };

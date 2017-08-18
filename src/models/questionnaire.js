@@ -15,7 +15,7 @@ function createQuestionnaire(shopUrl) {
       resolve({ questionnaireId: result.questionnaire_id });
     })
     .catch((err) => {
-      reject({ error: 'could not create questionnaire' });
+      reject({ error: 'unable to create questionnaire' });
     });
   });
 };
@@ -51,7 +51,7 @@ function saveQuestionnaire(questionnaireId, questionnaire) {
       resolve(Promise.all(flat));
     })
     .catch((err) => {
-      reject({ error: 'could not save questionnaire' });
+      reject({ error: 'unable to save questionnaire' });
     });
   });
 }
@@ -90,7 +90,7 @@ function saveQuestionAndAnswers(questionnaireId, productId, question, optionId, 
       resolve({ questionId: result[0].question_id, savedAnswers: result.length });
     })
     .catch((err) => {
-      reject({ error: 'could not save question and its answers' });
+      reject({ error: 'unable to save question with answers' });
     });
   });
 };
@@ -144,7 +144,7 @@ function getQuestionnaire(questionnaireId) {
       resolve(questionnaire);
     })
     .catch((err) => {
-      reject({ error: 'could not retrieve questionnaire' });
+      reject({ error: 'unable to retrieve questionnaire' });
     });
   });
 }
@@ -163,7 +163,7 @@ function getAllQuestionnaires(shopUrl) {
       resolve(result);
     })
     .catch((err) => {
-      reject({ error: 'could not get questionnaires' });
+      reject({ error: 'unable to get questionnaires' });
     });
   });
 };
@@ -189,7 +189,7 @@ function updateQuestionnaire(questionnaireId, updatedQuestionnaire) {
       resolve(result);
     })
     .catch((err) => {
-      reject({ error: 'coult not update questionnaire' });
+      reject({ error: 'unable to update questionnaire' });
     });
   });
 }
@@ -208,7 +208,7 @@ function deleteQuestionnaire(questionnaireId) {
     })
     .catch((err) => {
       console.log(err);
-      reject({ error: 'could not delete questionnaire' });
+      reject({ error: 'unable to delete questionnaire' });
     });
   });
 }
