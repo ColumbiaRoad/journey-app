@@ -1,4 +1,4 @@
-
+const winston = require('winston');
 const db = require('./db').getDBInstance();
 
 /**
@@ -16,6 +16,7 @@ const saveShop = (shopUrl, accessToken) => {
       resolve();
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to save shop' });
     });
   });
@@ -33,6 +34,7 @@ const getShop = (shopUrl) => {
       resolve(result);
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to retrieve shop' });
     });
   });
@@ -50,6 +52,7 @@ const deleteShop = (shopUrl) => {
       resolve();
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to delete shop' });
     });
   });

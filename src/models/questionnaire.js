@@ -1,5 +1,5 @@
-
 const _ = require('lodash');
+const winston = require('winston');
 const db = require('./db').getDBInstance();
 const shopModel = require('./shop');
 
@@ -15,6 +15,7 @@ function createQuestionnaire(shopUrl) {
       resolve({ questionnaireId: result.questionnaire_id });
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to create questionnaire' });
     });
   });
@@ -51,6 +52,7 @@ function saveQuestionnaire(questionnaireId, questionnaire) {
       resolve(Promise.all(flat));
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to save questionnaire' });
     });
   });
@@ -90,6 +92,7 @@ function saveQuestionAndAnswers(questionnaireId, productId, question, optionId, 
       resolve({ questionId: result[0].question_id, savedAnswers: result.length });
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to save question with answers' });
     });
   });
@@ -144,6 +147,7 @@ function getQuestionnaire(questionnaireId) {
       resolve(questionnaire);
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to retrieve questionnaire' });
     });
   });
@@ -163,6 +167,7 @@ function getAllQuestionnaires(shopUrl) {
       resolve(result);
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to get questionnaires' });
     });
   });
@@ -189,6 +194,7 @@ function updateQuestionnaire(questionnaireId, updatedQuestionnaire) {
       resolve(result);
     })
     .catch((err) => {
+      winston.error(err);
       reject({ error: 'unable to update questionnaire' });
     });
   });
@@ -207,7 +213,7 @@ function deleteQuestionnaire(questionnaireId) {
       resolve({ questionnaireId: result ? result.questionnaire_id : -1 });
     })
     .catch((err) => {
-      console.log(err);
+      winston.error(err);
       reject({ error: 'unable to delete questionnaire' });
     });
   });
