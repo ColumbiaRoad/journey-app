@@ -71,7 +71,7 @@ describe('questionnaire model', function() {
   });
   
   after(function(done) {
-    db.none('DELETE FROM shop WHERE shop_url = $1 OR shop_url = $2',
+    db.none('DELETE FROM shop WHERE shop_url = $1 OR shop_url = $2;',
       [shopName, otherShopName])
     .then(function(result) {
       done();
