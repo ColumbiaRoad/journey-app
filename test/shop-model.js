@@ -9,7 +9,8 @@ describe('shop model', function() {
   let token;
 
   before(function() {
-    shopName = 'shopModelTest';
+    // Clear table before starting
+    shopName = 'testShop';
     token = 'someAccessToken';
   });
 
