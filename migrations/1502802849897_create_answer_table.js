@@ -1,14 +1,15 @@
 exports.up = (pgm) => {
-  pgm.createTable('answers',
+  pgm.createTable('answer',
     {
       answer_id: 'SERIAL PRIMARY KEY',
       answer: 'varchar',
       property_value: 'varchar',
-      question_id: 'integer REFERENCES questions (question_id) ON DELETE CASCADE',
+      answer_row_id: 'varchar',
+      question_id: 'integer REFERENCES question (question_id) ON DELETE CASCADE',
     }
   );
 };
 
 exports.down = (pgm) => {
-  pgm.dropTable('answers');
+  pgm.dropTable('answer');
 };

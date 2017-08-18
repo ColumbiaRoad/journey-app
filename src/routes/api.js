@@ -1,7 +1,7 @@
 const Shopify = require('shopify-api-node');
-const shopModel = require('../models/shops');
+const shopModel = require('../models/shop');
 const winston = require('winston'); // LOGGING
-const surveyModel = require('../models/surveys');
+const questionnaireModel = require('../models/questionnaire');
 const validationError = require('../helpers/utils').validationError;
 
 let shopify = undefined;
@@ -9,7 +9,7 @@ let shopify = undefined;
 function getShopifyInstance(shop) {
   return new Promise((resolve, reject) => {
     if(shopify === undefined) {
-    shopModel.getShop(shop)
+      shopModel.getShop(shop)
       .then((result) => {
         winston.info(`Shops matching: ${result.length}`);
         // Currently shops aren't deleted so there can be multiple tokens.
@@ -29,6 +29,7 @@ function getShopifyInstance(shop) {
         }
       })
       .catch((err) => {
+        winston.error(err);
         reject(err);
       });
     } else {
@@ -73,31 +74,47 @@ module.exports = function(app) {
   });
 
   /**
-   * Saves survey (e.g questions and answers) in same format as test/save-survey-route.js
+   * Saves questionnaire (e.g questions and answers) in same format as test/save-questionnaire-route.js
    */
-  app.post('/api/v1/survey-model', (req, res) => {
-    req.checkBody({
-     'questions': {
-        notEmpty: true
-    }});
-    req.getValidationResult().then((result) => {
+  app.post('/api/v1/questionnaire', (req, res) => {
+    req.checkBody('questionnaire', 'Invalid or missing param').notEmpty();
+    req.getValidationResult()
+    .then((result) => {
       if (!result.isEmpty()) {
         throw new Error(validationError(result));
       }
-      const shopName = (req.auth) ? req.auth.shop : 'salashoppi'; // FOR TESTING
-      return Promise.all(req.body.questions.map((questionObject) => {
-        return surveyModel.saveQuestionAndAnswers(
-          shopName, questionObject.question, questionObject.questionRowId,
-          questionObject.productId, questionObject.answers
-        );
-      }));
+      const shopName = req.auth.shop;
+      return questionnaireModel.createQuestionnaire(shopName);
     })
-    .then((response) => {
-      return res.json({status: 'ok'});
+    .then((result) => {
+      return questionnaireModel.saveQuestionnaire(result.questionnaireId, req.body.questionnaire);
+    })
+    .then((savedQuestionnaire) => {
+      const id = savedQuestionnaire.find(e => e.questionnaireId).questionnaireId;
+      return res.json({ status: 'ok', questionnaireId: id });
     })
     .catch((err) => {
-      winston.error(err);
-      return res.status(400).send('Unable to save model');
+      return res.status(400).json(err);
     });
   });
+
+  app.get('/api/v1/questionnaire/:id', (req, res) => {
+    questionnaireModel.getQuestionnaire(req.params.id)
+    .then((questionnaire) => {
+      return res.json({ status: 'ok', questionnaire: questionnaire });
+    })
+    .catch((err) => {
+      return res.status(400).json(err);
+    });
+  });
+
+  app.delete('/api/v1/questionnaire/:id', (req, res) => {
+    questionnaireModel.deleteQuestionnaire(req.params.id)
+    .then((result) => {
+      return res.json({ status: 'ok' });
+    })
+    .catch((err) => {
+      return res.status(400).json(err);
+    });
+  })
 }
