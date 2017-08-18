@@ -9,13 +9,9 @@ const getShopifyInstance = (shop) => {
   return new Promise((resolve, reject) => {
     if(shopify === undefined) {
     shopModel.getShop(shop)
-      .then((result) => {
-        winston.info(`Shops matching: ${result.length}`);
-        // Currently shops aren't deleted so there can be multiple tokens.
-        // If so, take latest
-        const shop = result.length > 0 ? result.pop() : undefined;
-        winston.info(`shop: ${shop.shop_url}`);
+      .then((shop) => {
         if(shop !== undefined) {
+          winston.info(`shop: ${shop.shop_url}`);
           shopify = new Shopify({
             shopName: shop.shop_url.split('.')[0],
             accessToken: shop.access_token,

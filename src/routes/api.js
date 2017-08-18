@@ -59,6 +59,7 @@ module.exports = function(app) {
       return res.json({ status: 'ok', questionnaireId: id });
     })
     .catch((err) => {
+      winston.error(`Error when saving questionnaire: ${err}`);
       return res.status(400).json(err);
     });
   });

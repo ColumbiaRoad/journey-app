@@ -9,7 +9,7 @@ module.exports = function(app) {
   const javascript = (variants) => {
     return `
       <script>
-        var variants = ${JSON.stringify(variangs)};
+        var variants = ${JSON.stringify(variants)};
         function next(form, max, id) {
           document.getElementById(form + id).style.display = 'none';
           if (max - 1 !== id) {
@@ -23,19 +23,6 @@ module.exports = function(app) {
 
   const answerWithLink = (answer, questionCount, questionIdForm, index) => {
     return `<p onClick="next('${questionIdForm}', ${questionCount}, ${index})" > ${answer} </p>`;
-  };
-
-  const formatOneQuestion = (question, questionCount, index) => {
-    const questionIdForm = 'survey_question_';
-    const questionId = `${questionIdForm}${index}`;
-    const displayValue = (index === 0) ? 'block' : 'none';
-    return `<div
-              style="text-align:center;display:${displayValue};"
-              id=${questionId}>` +
-            '<h1>' + question[0].question + '</h1>' +
-            question.map((item) => answerWithLink(
-              item.answer, questionCount, questionIdForm, index
-            )).join(' ') + '</div>';
   };
 
   const createPage = (grouppedQuestions, variants) => {
@@ -70,37 +57,69 @@ module.exports = function(app) {
     });
   };
 
-  app.get('/journey-assistant', function(req, res) {
+  const formatOneQuestion = (question, questionCount, index) => {
+    const questionIdForm = 'survey_question_';
+    const questionId = `${questionIdForm}${index}`;
+    const displayValue = (index === 0) ? 'block' : 'none';
+    return `<div
+              style="text-align:center;display:${displayValue};"
+              id=${questionId}>` +
+            '<h1>' + question[0].question + '</h1>' +
+            question.map((item) => answerWithLink(
+              item.answer, questionCount, questionIdForm, index
+            )).join(' ') + '</div>';
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const createRootquestionPage = (model) => {
+    return `<div style="text-align:center;" >
+        <h1>${model.rootQuestion.question}</h1>
+        ${model.rootQuestion.answerMapping.map((item) => {
+          const href = `http://localhost:9000/journey-assistant?productid=${item.id}`;
+          return `<p><a href="${href}">${item.answer}</a></p>`;
+        }).join(' ')}
+      </div>
+    `;
+  };
+
+  app.get('/journey-assistant/root', function(req, res) {
     const shopUrl = req.query.shop;
-    Promise.all([
-      questionnaireModel.getAllQuestionnaires(shopUrl),
-      getShopifyInstance(shopUrl)
-    ])
-    .then(([model, shopify]) => {
-      if (model.length < 1 || shopify === undefined) {
+    questionnaireModel.getAllQuestionnaires(shopUrl)
+    .then((model) => {
+      if (model.length < 1) {
         winston.error('model length: ' + model.length);
         const message = `No shop ${shopUrl} found.`;
         throw new Error(message);
       }
-      debugger;
-      const productId = model[0].product_id;
-      return Promise.all([
-        model,
-        shopify.productVariant.list(productId),
-        shopify.product.get(productId)
-      ]);
+      const questionnaireId = model[0].questionnaire_id;
+      return questionnaireModel.getQuestionnaire(questionnaireId);
     })
-    .then(([model, variants, product]) => {
-      const variantMapping = createVariantMapping(variants, product);
-      debugger;
-      const grouppedQuestions = utils.groupBy(model, 'question');
-      let liquidHTML = createPage(grouppedQuestions, variantMapping);
-      res.setHeader('content-type', 'application/liquid'); // Let's tell shopify that liquid is coming!
-      return res.send(liquidHTML);
+    .then((model) => {
+      //const variantMapping = createVariantMapping(variants, product); NO NEED FOR VARIANTS YET
+      let liquidHTML = createRootquestionPage(model);
+      //res.setHeader('content-type', 'application/liquid'); // Let's tell shopify that liquid is coming!
+      return res.send(liquidHTML.trim());
     })
     .catch((err) => {
       winston.error(err);
       return res.status(400).send('something went wrong');
     });
+  });
+
+  app.get('/journey-assistant', function(req, res) {
+    const productid = req.query.productid;
+    //res.setHeader('content-type', 'application/liquid');
+    return res.send(productid);
   });
 }
