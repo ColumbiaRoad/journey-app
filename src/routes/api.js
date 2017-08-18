@@ -29,6 +29,7 @@ function getShopifyInstance(shop) {
         }
       })
       .catch((err) => {
+        winston.error(err);
         reject(err);
       });
     } else {
@@ -76,27 +77,44 @@ module.exports = function(app) {
    * Saves questionnaire (e.g questions and answers) in same format as test/save-questionnaire-route.js
    */
   app.post('/api/v1/questionnaire', (req, res) => {
-    req.checkBody('questions', 'Invalid or missing param').notEmpty();
-    req.checkBody('productId', 'Invalid or missing param').notEmpty();
-    req.getValidationResult().then((result) => {
+    req.checkBody('questionnaire', 'Invalid or missing param').notEmpty();
+    req.getValidationResult()
+    .then((result) => {
       if (!result.isEmpty()) {
         throw new Error(validationError(result));
       }
       const shopName = req.auth.shop;
-      // TODO create questionnaire in DB
-      return Promise.all(req.body.questions.map((questionItem) => {
-        return questionnaireModel.saveQuestionAndAnswers(
-          shopName, req.body.productId,
-          questionItem.question, questionItem.optionId, questionItem.answerMapping
-        );
-      }));
+      return questionnaireModel.createQuestionnaire(shopName);
     })
-    .then((response) => {
-      return res.json({status: 'ok'});
+    .then((result) => {
+      return questionnaireModel.saveQuestionnaire(result.questionnaireId, req.body.questionnaire);
+    })
+    .then((savedQuestionnaire) => {
+      const id = savedQuestionnaire.find(e => e.questionnaireId).questionnaireId;
+      return res.json({ status: 'ok', questionnaireId: id });
     })
     .catch((err) => {
-      winston.error(err);
-      return res.status(400).send('Unable to save model');
+      return res.status(400).json(err);
     });
   });
+
+  app.get('/api/v1/questionnaire/:id', (req, res) => {
+    questionnaireModel.getQuestionnaire(req.params.id)
+    .then((questionnaire) => {
+      return res.json({ status: 'ok', questionnaire: questionnaire });
+    })
+    .catch((err) => {
+      return res.status(400).json(err);
+    });
+  });
+
+  app.delete('/api/v1/questionnaire/:id', (req, res) => {
+    questionnaireModel.deleteQuestionnaire(req.params.id)
+    .then((result) => {
+      return res.json({ status: 'ok' });
+    })
+    .catch((err) => {
+      return res.status(400).json(err);
+    });
+  })
 }
