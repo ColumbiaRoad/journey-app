@@ -34,6 +34,7 @@
     "node": "8.1.4"
   },
   "devDependencies": {
+    "encodeurl": "^1.0.1",
     "expect.js": "^0.3.1"
   }
 }
