@@ -3,6 +3,8 @@ const winston = require('winston'); // LOGGING
 const crypto = require('crypto');
 const questionnaireModel = require('../models/questionnaire');
 const validationError = require('../helpers/utils').validationError;
+const Hogan = require('hogan.js');
+const fs = require('fs');
 
 function checkSignature(query) {
   const params = Object.keys(query).filter(k => k !== 'hmac' && k !== 'signature').sort().map((k) => {
@@ -29,13 +31,19 @@ module.exports = function(app) {
       if (!tokenMatch) {
         return res.status(400).send('Invalid signature');
       }
-      const options = {
-        root: `${__dirname}/../liquid/`,
-        headers: {
-          'content-type': 'application/liquid'
+      res.setHeader('content-type', 'application/liquid');
+      // Send liquid file
+      fs.readFile(`${__dirname}/../liquid/questionnaire.liquid`,'utf8', (err, data) => {
+        if (err) {
+          winston.error(err);
+          res.send('<p>Unable to find questionnaire.</p>');
+        } else {
+          // Parse liquid file using hogan.js with custom delimiters
+          // to allow passing variables to allow passing variables to it
+          const template = Hogan.compile(data, {delimiters: '<% %>'});
+          res.send(template.render({name: 'max'}));
         }
-      }
-      res.sendFile('questionnaire.liquid', options);
+      })
     });
   });
 }
