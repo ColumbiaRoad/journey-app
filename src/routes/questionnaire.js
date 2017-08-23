@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const questionnaireModel = require('../models/questionnaire');
 const validationError = require('../helpers/utils').validationError;
 const Hogan = require('hogan.js');
-const fs = require('fs');
+const readFile = require("fs").readFile;
 
 function checkSignature(query) {
   const params = Object.keys(query).filter(k => k !== 'hmac' && k !== 'signature').sort().map((k) => {
@@ -31,19 +31,42 @@ module.exports = function(app) {
       if (!tokenMatch) {
         return res.status(400).send('Invalid signature');
       }
-      res.setHeader('content-type', 'application/liquid');
-      // Send liquid file
-      fs.readFile(`${__dirname}/../liquid/questionnaire.liquid`,'utf8', (err, data) => {
-        if (err) {
-          winston.error(err);
-          res.send('<p>Unable to find questionnaire.</p>');
+      questionnaireModel.getAllQuestionnaires(req.query.shop)
+      .then((result) => {
+        if(result.questionnaireIds.length > 0) {
+          const questionnaireId = result.questionnaireIds[0]
+          return questionnaireModel.getQuestionnaire(questionnaireId);
         } else {
-          // Parse liquid file using hogan.js with custom delimiters
-          // to allow passing variables to allow passing variables to it
-          const template = Hogan.compile(data, {delimiters: '<% %>'});
-          res.send(template.render({name: 'max'}));
+          return Promise.reject({error: 'unable to find questionnaire for given shop'});
         }
       })
+      .then((questionnaire) => {
+        // Send liquid file
+        readFile(`${__dirname}/../liquid/questionnaire.liquid.mustache`,'utf8', (err, data) => {
+          if (err) {
+            return Promise.reject(err);
+          } else {
+            questionnaire.selectedProducts = questionnaire.selectedProducts.map((item) => {
+              const mapping = questionnaire.rootQuestion.answerMapping.find(m => m.value == item.productId);
+              return Object.assign({
+                rootQuestionAnswer: mapping.answer
+              }, item);
+            });
+            // Parse liquid file using Hogan.js with custom delimiters
+            // to allow passing variables to it
+            const template = Hogan.compile(data, {delimiters: '<% %>'});
+            res.setHeader('content-type', 'application/liquid');
+            res.send(template.render({
+              shop: req.query.shop,
+              questionnaire: questionnaire,
+            }));
+          }
+        });
+      })
+      .catch((err) => {
+        winston.error(err);
+        res.status(500).send('<p>An error occurred.</p>');
+      });
     });
   });
 }
