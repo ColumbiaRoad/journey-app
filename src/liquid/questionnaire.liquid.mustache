@@ -1,12 +1,104 @@
-<div align="center">
-  <h1><%questionnaire.rootQuestion.question%></h1>
-  <%#questionnaire.selectedProducts%>
-    <a href="#" style="display:block;font-size:20px;;"><%rootQuestionAnswer%></a>
-    <%#questions%>
-      <h4><%question%></h4>
-      <%#answerMapping%>
-        <a href="#" style="display:inline-block;margin:10px;"><%answer%></a>
-      <%/answerMapping%>
-    <%/questions%>
-  <%/questionnaire.selectedProducts%>
+<div>
+  <style>
+    .product-question {
+      display: none;
+    }
+    .product-option-question {
+      margin: 20px;
+    }
+    #ja-controls {
+      width: 30%;
+      display:none;
+      justify-content:space-around;
+    }
+    div#ja-controls button {
+      width: 100%;
+      margin: 3px;
+    }
+  </style>
+  <div id="questionnaire" align="center">
+    <div id="root-question">
+    <h1><%questionnaire.rootQuestion.question%></h1>
+    <%#questionnaire.rootQuestion.answerMapping%>
+      <button id="<%id%>"><%answer%></button>
+    <%/questionnaire.rootQuestion.answerMapping%>
+    </div>
+    <%#questionnaire.selectedProducts%>
+    <div class="product-question" id="<%productId%>">
+      <!-- TODO: setup end point -->
+      <form class="product-question-form" action="http://example.com">
+        <%#questions%>
+        <div class="product-option-question">
+        <h3><%question%></h3>
+            <%#answerMapping%>
+            <span style="margin:10px;">
+              <input type="radio" name="<%option%>" id="<%id%>" value="<%answer%>">
+              <label for="<%id%>"><%answer%></label>
+            </span>
+            <%/answerMapping%>
+        </div>
+        <%/questions%>
+      </form>
+    </div>
+    <%/questionnaire.selectedProducts%>
+    <div id="ja-controls">
+      <button id="ja-back-btn">Back</button>
+      <button id="ja-continue-btn">Continue</button>
+    </div>
+  </div>
+  <script type="text/javascript">
+    <%#questionnaire.rootQuestion.answerMapping%>
+      let answer_<%value%>;
+    <%/questionnaire.rootQuestion.answerMapping%>
+      let rootQuestion;
+      let jaControls;
+      let productQuestions;
+    <%#questionnaire.rootQuestion.answerMapping%>
+    document.getElementById("<%id%>").addEventListener("click", function() {
+      if(!answer_<%value%>) {
+        answer_<%value%> = document.getElementById("<%value%>");
+      }
+      answer_<%value%>.style.display = 'block';
+      if(!rootQuestion) {
+        rootQuestion = document.getElementById("root-question");
+      }
+      rootQuestion.style.display = 'none';
+      if(!jaControls) {
+        jaControls = document.getElementById("ja-controls");
+      }
+      jaControls.style.display = 'flex';
+    });
+    <%/questionnaire.rootQuestion.answerMapping%>
+    document.getElementById("ja-back-btn").addEventListener("click", function() {
+      resetStatus();
+    });
+    document.getElementById("ja-continue-btn").addEventListener("click", function() {
+      if(!productQuestions) {
+        productQuestions = document.getElementsByClassName("product-question");
+      }
+      [].forEach.call(productQuestions, function(elem) {
+        const style = window.getComputedStyle(elem);
+        const display = style.getPropertyValue('display');
+        if(display !== 'none') {
+          elem.querySelector(".product-question-form").submit();
+        }
+      })
+    });
+    function resetStatus() {
+      if(!productQuestions) {
+        productQuestions = document.getElementsByClassName("product-question");
+      }
+      [].forEach.call(productQuestions, function(elem) {
+        elem.removeAttribute("style");
+      });
+      if(!rootQuestion) {
+        rootQuestion = document.getElementById("root-question");
+      }
+      rootQuestion.removeAttribute("style");
+      if(!jaControls) {
+        jaControls = document.getElementById("ja-controls");
+      }
+      jaControls.removeAttribute("style");
+    }
+  </script>
 </div>

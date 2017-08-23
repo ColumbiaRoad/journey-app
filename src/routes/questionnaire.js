@@ -4,7 +4,8 @@ const crypto = require('crypto');
 const questionnaireModel = require('../models/questionnaire');
 const validationError = require('../helpers/utils').validationError;
 const Hogan = require('hogan.js');
-const readFile = require("fs").readFile;
+const readFile = require('fs').readFile;
+const path = require('path');
 
 function checkSignature(query) {
   const params = Object.keys(query).filter(k => k !== 'hmac' && k !== 'signature').sort().map((k) => {
@@ -42,7 +43,7 @@ module.exports = function(app) {
       })
       .then((questionnaire) => {
         // Send liquid file
-        readFile(`${__dirname}/../liquid/questionnaire.liquid.mustache`,'utf8', (err, data) => {
+        readFile(path.join(__dirname, '../liquid/questionnaire.liquid.mustache'),'utf8', (err, data) => {
           if (err) {
             return Promise.reject(err);
           } else {
