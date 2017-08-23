@@ -159,7 +159,7 @@ describe('questionnaire model', function() {
       return questionnaireModel.getAllQuestionnaires(otherShopName);
     })
     .then(function(result) {
-      expect(result.length).to.be(3);
+      expect(result.questionnaireIds.length).to.be(3);
     });
   });
 
