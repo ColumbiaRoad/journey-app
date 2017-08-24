@@ -116,10 +116,10 @@ module.exports = function(app) {
       }
       const matchingVariant = findProductVariant(product, answers);
       if(matchingVariant) {
-        res.redirect(`https://${shop}/products/${product.handle}?variant=${matchingVariant.id}`);
+        res.redirect(`https://${shop}/products/${product.handle}?variant=${matchingVariant.id}&ref=journey-assistnat`);
       } else {
         // If no matching variant is found, default to product page
-        res.redirect(`https://${shop}/products/${product.handle}`);
+        res.redirect(`https://${shop}/products/${product.handle}?ref=journey-assistant`);
       }
     })
     .catch((err) => {
