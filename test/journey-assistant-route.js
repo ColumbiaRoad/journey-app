@@ -7,10 +7,11 @@ const app = express();
 const shopModel = require('../src/models/shop');
 const questionnaireModel = require('../src/models/questionnaire');
 
-describe('route /questionnaire', function() {
+describe('route /journey-assistant', function() {
   let shopName;
+
   before(function(done) {
-    shopName = 'questionnaireLiquidRouteTest';
+    shopName = 'journeyAssistantRouteTest';
     const questionnaire = {
       rootQuestion: {
         question: 'What are you looking for?',
@@ -81,7 +82,7 @@ describe('route /questionnaire', function() {
     });
   });
 
-  it('get liquid file', function(done) {
+  it('GET /journey-assistant', function(done) {
     const params = {
       shop: shopName,
       path_prefix: '/apps/findmybike',
@@ -93,7 +94,7 @@ describe('route /questionnaire', function() {
     const digest = crypto.createHmac('sha256', process.env.SHOPIFY_APP_SECRET)
     .update(pairs.join(''))
     .digest('hex');
-    const url = `/questionnaire?shop=${params.shop}&path_prefix=${params.path_prefix}&timestamp=${params.timestamp}&signature=${digest}`;
+    const url = `/journey-assistant?shop=${params.shop}&path_prefix=${params.path_prefix}&timestamp=${params.timestamp}&signature=${digest}`;
     request(app)
       .get(url)
       .expect(200)
