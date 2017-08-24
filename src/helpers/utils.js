@@ -21,6 +21,10 @@ const getJWTToken = (shop) => {
   return jwt.sign(payload, process.env.SHOPIFY_APP_SECRET, { expiresIn: '3h' });
 }
 
+const decodeJWTToken = (token) => {
+  return jwt.verify(token, process.env.SHOPIFY_APP_SECRET);
+}
+
 const getShopifyToken = () => {
   return new ShopifyToken({
     sharedSecret: process.env.SHOPIFY_APP_SECRET,
@@ -31,5 +35,5 @@ const getShopifyToken = () => {
 
 
 module.exports = {
-  validationError, groupBy, getJWTToken, getShopifyToken
+  validationError, groupBy, getJWTToken, decodeJWTToken, getShopifyToken
 };
