@@ -124,7 +124,7 @@ module.exports = function(app) {
     })
     .catch((err) => {
       winston.error(err);
-      res.status(500).send('<p>An error occurred</p>');
+      res.status(400).send('<p>Malformed request</p>');
     })
   });
 }
