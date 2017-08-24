@@ -1,18 +1,10 @@
 const crypto = require('crypto');
 const winston = require('winston'); // LOGGING
 const redis = require('../helpers/redisHelper');
-const ShopifyToken = require('shopify-token');
 const shopModel = require('../models/shop');
 const getJWTToken = require('../helpers/utils').getJWTToken;
+const getShopifyToken = require('../helpers/utils').getShopifyToken;
 const validationError = require('../helpers/utils').validationError;
-
-const getShopifyToken = () => {
-  return new ShopifyToken({
-    sharedSecret: process.env.SHOPIFY_APP_SECRET,
-    redirectUri: `${process.env.BASE_URL}/auth/redirect/uri`,
-    apiKey: process.env.SHOPIFY_API_KEY
-  });
-};
 
 module.exports = function(app) {
 

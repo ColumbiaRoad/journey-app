@@ -164,7 +164,10 @@ function getAllQuestionnaires(shopUrl) {
   return new Promise((resolve, reject) => {
     db.any(query, shopUrl)
     .then((result) => {
-      resolve(result);
+      resolve({
+        shop: shopUrl,
+        questionnaireIds: result.map(item => item.questionnaire_id)
+      });
     })
     .catch((err) => {
       winston.error(err);
