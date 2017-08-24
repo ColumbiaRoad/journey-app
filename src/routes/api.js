@@ -70,7 +70,7 @@ module.exports = function(app) {
       return res.json({ status: 'ok', questionnaire: questionnaire });
     })
     .catch((err) => {
-      return res.status(400).json(err);
+      return res.status(404).json(err);
     });
   });
 
@@ -80,7 +80,24 @@ module.exports = function(app) {
       return res.json({ status: 'ok' });
     })
     .catch((err) => {
-      return res.status(400).json(err);
+      return res.status(404).json(err);
     });
-  })
+  });
+
+  app.get('/api/v1/shop/:shopUrl/questionnaire', (req, res) => {
+    questionnaireModel.getAllQuestionnaires(req.params.shopUrl)
+    .then((result) => {
+      if(result.questionnaireIds.length > 0) {
+        return questionnaireModel.getQuestionnaire(result.questionnaireIds[0]);
+      } else {
+        Promise.reject('Unable to find questionnaires');
+      }
+    })
+    .then((questionnaire) => {
+      return res.json({ status: 'ok', questionnaire: questionnaire });
+    })
+    .catch((err) => {
+      return res.status(404).json(err);
+    });
+  });
 }
