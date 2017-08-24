@@ -14,7 +14,7 @@ describe('route /api/v1/questionnaire', function() {
   let token;
   let questionnaireId;
   before(function(done) {
-    shopName = 'questionnaireRouteTest';
+    shopName = 'questionnaire-route-test.myshopify.com';
     token = getJWTToken(shopName);    
     questionnaire = {
       rootQuestion: {
@@ -128,6 +128,19 @@ describe('route /api/v1/questionnaire', function() {
           expect(res.body.status).to.be('ok');
           done();
         });
+    });
+  });
+  describe('GET /api/v1/shop/:shopUrl/questionnaire', function() {
+    it('get questionnaire for existing shop', function(done) {
+      request(app)
+      .get(`/api/v1/shop/${shopName}/questionnaire`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .end(function(err, res) {
+        if(err) return done(err);
+        expect(res.body.questionnaire).to.eql(questionnaire);
+        done();
+      });
     });
   });
 });
