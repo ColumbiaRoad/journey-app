@@ -24,7 +24,7 @@ module.exports = function() {
     requestProperty: 'auth'
   };
   // Require JWT token for all paths but the ones starting with /auth/
-  app.use(jwt(jwtConfig).unless({path: [/^\/auth\//, '/journey-assistant', '/journey-assistant/root', /^\/questionnaire/]}));
+  app.use(jwt(jwtConfig).unless({path: [/^\/auth\//, /^\/journey-assistant/]}));
   app.use(function (err, req, res, next) {
     if (err.name === 'UnauthorizedError') {
       res.status(401).json('Invalid token');
@@ -36,7 +36,6 @@ module.exports = function() {
   require('../routes/authentication')(app);
   require('../routes/api.js')(app);
   require('../routes/journey-assistant.js')(app);
-  require('../routes/questionnaire.js')(app);
 
   return app;
 };
