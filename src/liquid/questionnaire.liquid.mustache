@@ -26,18 +26,20 @@
     <%#questionnaire.selectedProducts%>
     <div class="product-question" id="<%productId%>">
       <!-- TODO: setup end point -->
-      <form class="product-question-form" action="http://example.com">
+    <form class="product-question-form" action="<%actionUrl%>">
         <%#questions%>
         <div class="product-option-question">
         <h3><%question%></h3>
             <%#answerMapping%>
             <span style="margin:10px;">
-              <input type="radio" name="<%option%>" id="<%id%>" value="<%answer%>">
+              <input type="radio" name="<%option%>" id="<%id%>" value="<%value%>">
               <label for="<%id%>"><%answer%></label>
             </span>
             <%/answerMapping%>
         </div>
         <%/questions%>
+        <input type="hidden" name="productId" value="<%productId%>" />
+        <input type="hidden" name="token" value="<%token%>" />
       </form>
     </div>
     <%/questionnaire.selectedProducts%>
