@@ -97,14 +97,14 @@ module.exports = function(app) {
       if(result.questionnaireIds.length > 0) {
         return questionnaireModel.getQuestionnaire(result.questionnaireIds[0]);
       } else {
-        Promise.reject('Unable to find questionnaires');
+        return Promise.reject('Unable to find questionnaires');
       }
     })
     .then((questionnaire) => {
       return res.json({ status: 'ok', questionnaire: questionnaire });
     })
     .catch((err) => {
-      return res.status(404).json(err);
+      return res.json({error: err});
     });
   });
 
@@ -125,7 +125,10 @@ module.exports = function(app) {
         questionnaireModel.createQuestionnaire(shop)
         .then((result) => {
           return questionnaireModel.saveQuestionnaire(result.questionnaireId, req.body.questionnaire);
-        });
+        })
+        .catch((err) => {
+          res.json(err);
+        })
       }
     })
     .then((result) => {
