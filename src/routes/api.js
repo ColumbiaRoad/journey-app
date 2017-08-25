@@ -6,7 +6,7 @@ const validationError = require('../helpers/utils').validationError;
 
 module.exports = function(app) {
   app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", process.env.ACCESS_CONTROL_ALLOW_ORIGIN);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
     next();
@@ -91,8 +91,8 @@ module.exports = function(app) {
     });
   });
 
-  app.get('/api/v1/shop/:shopUrl/questionnaire', (req, res) => {
-    questionnaireModel.getAllQuestionnaires(req.params.shopUrl)
+  app.get('/api/v1/shop/questionnaire', (req, res) => {
+    questionnaireModel.getAllQuestionnaires(req.auth.shop)
     .then((result) => {
       if(result.questionnaireIds.length > 0) {
         return questionnaireModel.getQuestionnaire(result.questionnaireIds[0]);
@@ -106,5 +106,34 @@ module.exports = function(app) {
     .catch((err) => {
       return res.status(404).json(err);
     });
+  });
+
+  app.post('/api/v1/shop/questionnaire', (req, res) => {
+    const shop = req.auth.shop;
+    req.checkBody('questionnaire', 'Invalid or missing param').notEmpty();
+    req.getValidationResult()
+    .then((result) => {
+      if (!result.isEmpty()) {
+        throw new Error(validationError(result));
+      }
+      return questionnaireModel.getAllQuestionnaires(shop)
+    })
+    .then((result) => {
+      if(result.questionnaireIds.length > 0) {
+        return questionnaireModel.updateQuestionnaire(result.questionnaireIds[0], req.body.questionnaire);
+      } else {
+        questionnaireModel.createQuestionnaire(shop)
+        .then((result) => {
+          return questionnaireModel.saveQuestionnaire(result.questionnaireId, req.body.questionnaire);
+        });
+      }
+    })
+    .then((result) => {
+      res.json({ status: 'ok' });
+    })
+    .catch((err) => {
+      winston.error(err);
+      res.status(400).json(err);
+    })
   });
 }
