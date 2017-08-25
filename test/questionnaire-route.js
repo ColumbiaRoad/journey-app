@@ -130,10 +130,10 @@ describe('route /api/v1/questionnaire', function() {
         });
     });
   });
-  describe('GET /api/v1/shop/:shopUrl/questionnaire', function() {
+  describe('GET /api/v1/shop/questionnaire', function() {
     it('get questionnaire for existing shop', function(done) {
       request(app)
-      .get(`/api/v1/shop/${shopName}/questionnaire`)
+      .get(`/api/v1/shop/questionnaire`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .end(function(err, res) {

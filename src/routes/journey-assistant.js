@@ -80,7 +80,7 @@ module.exports = function(app) {
               shop: req.query.shop,
               questionnaire: questionnaire,
               token: getJWTToken(req.query.shop),
-              actionUrl: `https://0024c54e.ngrok.io/journey-assistant/${questionnaireId}`
+              actionUrl: `${req.protocol}://${req.get('host')}/journey-assistant/${questionnaireId}`
             }));
           }
         });
