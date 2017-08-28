@@ -7,11 +7,11 @@
       margin: 20px;
     }
     #ja-controls {
-      width: 30%;
+      width: 40%;
       display:none;
       justify-content:space-around;
     }
-    div#ja-controls button {
+    div#ja-controls a {
       width: 100%;
       margin: 3px;
     }
@@ -20,7 +20,7 @@
     <div id="root-question">
     <h1><%questionnaire.rootQuestion.question%></h1>
     <%#questionnaire.rootQuestion.answerMapping%>
-      <button id="<%id%>"><%answer%></button>
+      <a id="<%id%>" class="btn"><%answer%></a>
     <%/questionnaire.rootQuestion.answerMapping%>
     </div>
     <%#questionnaire.selectedProducts%>
@@ -28,7 +28,7 @@
     <form class="product-question-form" action="<%actionUrl%>">
         <%#questions%>
         <div class="product-option-question">
-        <h3><%question%></h3>
+        <h4><%question%></h4>
             <%#answerMapping%>
             <span style="margin:10px;">
               <input type="radio" name="<%option%>" id="<%id%>" value="<%value%>">
@@ -43,8 +43,8 @@
     </div>
     <%/questionnaire.selectedProducts%>
     <div id="ja-controls">
-      <button id="ja-back-btn">Back</button>
-      <button id="ja-continue-btn">Continue</button>
+      <a id="ja-back-btn" class="btn">Back</a>
+      <a id="ja-continue-btn" class="btn">Next</a>
     </div>
   </div>
   <script type="text/javascript">
