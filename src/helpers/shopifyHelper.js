@@ -5,8 +5,8 @@ const winston = require('winston'); // LOGGING
 
 const getShopifyInstance = (shop, accessToken=undefined) => {
   return new Promise((resolve, reject) => {
-    // Access token known, no need to access database
     if(accessToken) {
+      // Access token known, no need to access database
       resolve(new Shopify({
         shopName: shop.split('.')[0],
         accessToken: accessToken,
@@ -15,7 +15,7 @@ const getShopifyInstance = (shop, accessToken=undefined) => {
     } else {
       shopModel.getShop(shop)
       .then((shop) => {
-        if(shop === null) {
+        if(shop !== null) {
           resolve(new Shopify({
             shopName: shop.shop_url.split('.')[0],
             accessToken: shop.access_token,
