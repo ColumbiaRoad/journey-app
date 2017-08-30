@@ -22,8 +22,8 @@ function checkWebhookSignature(req) {
   return digest === req.headers['X-Shopify-Hmac-Sha256'];
 }
 
-function setUpWebhook(shop, baseUrl) {
-  return getShopifyInstance(shop)
+function setUpWebhook(shop, accessToken, baseUrl) {
+  return getShopifyInstance(shop, accessToken)
   .then((shopify) => {
     return shopify.webhook.create({
       topic: 'app/uninstalled',
@@ -91,18 +91,20 @@ module.exports = function(app) {
       if (!tokenMatch) {
         return res.status(400).send('HMAC do not match');
       }
-
+      let accessToken;
       redis.getNonceByShop(shop, (error, nonce) => {
         if (error || nonce !== state) {
           return res.status(400).send('State parameter do not match.');
         }
         shopifyToken.getAccessToken(shop, code)
         .then((token) => {
-          return shopModel.saveShop(shop, token);
+          // Save token to access it later
+          accessToken = token;
+          return shopModel.saveShop(shop, accessToken);
         })
         .then(() => {
           winston.info(`saved shop ${shop}`);
-          return setUpWebhook(shop, process.env.BASE_URL);
+          return setUpWebhook(shop, accessToken, process.env.BASE_URL);
         })
         .then((webhook) => {
           const token = getJWTToken(shop);
