@@ -119,7 +119,7 @@ module.exports = function(app) {
     });
   });
 
-  app.get('/auth/uninstall', function(req, res) {
+  app.post('/auth/uninstall', function(req, res) {
     if(checkWebhookSignature(req) && req.headers['X-Shopify-Topic'] === 'app/uninstalled') {
       res.status(200).send();
       winston.info(req.body);
