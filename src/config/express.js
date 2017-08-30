@@ -14,6 +14,14 @@ const allowCrossDomain = (req, res, next) => {
 
 module.exports = function() {
   const app = express();
+  // Custom Middleware to compute rawBody
+  app.use(function(req, res, next){
+    req.rawBody = '';
+    req.on('data', function(chunk){
+        req.rawBody += chunk;
+    });
+    next();
+  });
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
   app.use(expressValidator());
@@ -30,6 +38,7 @@ module.exports = function() {
       res.status(401).json('Invalid token');
     }
   });
+
 
   // IMPORT ROUTES HERE
   require('../routes/hello')(app);

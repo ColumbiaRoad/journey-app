@@ -20,8 +20,8 @@ describe('route /api/v1/questionnaire', function() {
       rootQuestion: {
         question: 'What are you looking for?',
         answerMapping: [
-          { id: 'j6ew2kx6', answer: 'This!', value: 'Test Product' },
-          { id: 'j6ew2kz9', answer: 'That!', value: 'Another Product' }
+          { id: 'j6ew2kx6', answer: 'This!', value: '11152891412' },
+          { id: 'j6ew2kz9', answer: 'That!', value: '11152897108' }
         ]
       },
       selectedProducts: [
@@ -33,7 +33,7 @@ describe('route /api/v1/questionnaire', function() {
               question: 'Are you mainstream?',
               answerMapping: [
                 { id: 'j6ew3la5', answer: 'Yes', value: 'Default Title' },
-                { id: 'j6ew3lk1', answer: 'No', value: 'Custom Title' }
+                { id: 'j6ew3lk1', answer: 'No', value: 'Default Title' }
               ]
             }
           ]
@@ -78,12 +78,12 @@ describe('route /api/v1/questionnaire', function() {
 
   after(function(done) {
     db.none('DELETE FROM shop WHERE shop_url = $1;', shopName)
-  .then(function(result) {
-    done();
-  })
-  .catch(function(err) {
-    done(err);
-  });
+    .then(function(result) {
+      done();
+    })
+    .catch(function(err) {
+      done(err);
+    });
   });
 
   describe('POST /api/v1/questionnaire', function() {

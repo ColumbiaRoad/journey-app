@@ -116,7 +116,7 @@ module.exports = function(app) {
       }
       const matchingVariant = findProductVariant(product, answers);
       if(matchingVariant) {
-        res.redirect(`https://${shop}/products/${product.handle}?variant=${matchingVariant.id}&ref=journey-assistnat`);
+        res.redirect(`https://${shop}/products/${product.handle}?variant=${matchingVariant.id}&ref=journey-assistant`);
       } else {
         // If no matching variant is found, default to product page
         res.redirect(`https://${shop}/products/${product.handle}?ref=journey-assistant`);

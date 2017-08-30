@@ -21,6 +21,7 @@ module.exports = function(app) {
         return res.json(products);
       })
       .catch((err) => {
+        winston.error(err);
         if (err && err.hasOwnProperty('response')) {
           return res.json(err.response.body);
         } else {
@@ -41,7 +42,15 @@ module.exports = function(app) {
         return res.json(product);
       })
       .catch((err) => {
-        return res.json(err.response.body);
+        winston.error(err);
+        if (err && err.hasOwnProperty('response')) {
+          return res.json(err.response.body);
+        } else {
+          const message = err.hasOwnProperty('message') ? err.message : 'unkown error';
+          return res.json({
+            errors: message
+          });
+        }
       });
   });
 

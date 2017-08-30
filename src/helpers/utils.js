@@ -1,6 +1,5 @@
 const util = require('util');
 const jwt = require('jsonwebtoken');
-const ShopifyToken = require('shopify-token');
 
 const validationError = (result) => {
   return 'There have been validation errors: ' + util.inspect(result.array());
@@ -25,15 +24,6 @@ const decodeJWTToken = (token) => {
   return jwt.verify(token, process.env.SHOPIFY_APP_SECRET);
 }
 
-const getShopifyToken = () => {
-  return new ShopifyToken({
-    sharedSecret: process.env.SHOPIFY_APP_SECRET,
-    redirectUri: `${process.env.BASE_URL}/auth/redirect/uri`,
-    apiKey: process.env.SHOPIFY_API_KEY
-  });
-};
-
-
 module.exports = {
-  validationError, groupBy, getJWTToken, decodeJWTToken, getShopifyToken
+  validationError, groupBy, getJWTToken, decodeJWTToken
 };
