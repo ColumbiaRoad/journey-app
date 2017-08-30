@@ -3,21 +3,39 @@ const winston = require('winston'); // LOGGING
 const redis = require('../helpers/redisHelper');
 const shopModel = require('../models/shop');
 const getJWTToken = require('../helpers/utils').getJWTToken;
-const getShopifyToken = require('../helpers/utils').getShopifyToken;
+const getShopifyToken = require('../helpers/shopifyHelper').getShopifyToken;
 const getShopifyInstance = require('../helpers/shopifyHelper').getShopifyInstance;
 const validationError = require('../helpers/utils').validationError;
 
 function checkWebhookSignature(req) {
-  var digest = crypto.createHmac('SHA256', process.env.SHOPIFY_APP_SECRET)
-  .update(new Buffer(req.body, 'utf8'))
+  let data;
+  try{
+    data = new Buffer(req.body, 'utf8');
+  } catch(err) {
+    winston.error(err);
+    return false;
+  }
+  const digest = crypto.createHmac('SHA256', process.env.SHOPIFY_APP_SECRET)
+  .update(data)
   .digest('base64');
 
   return digest === req.headers['X-Shopify-Hmac-Sha256'];
 }
 
+function setUpWebhook(shop, baseUrl) {
+  return getShopifyInstance(shop)
+  .then((shopify) => {
+    return shopify.webhook.create({
+      topic: 'app/uninstalled',
+      address: `${baseUrl}/auth/uninstall`,
+      format: 'json'
+    });
+  });
+}
+
 module.exports = function(app) {
 
-  app.get('/auth/shopify-embedded', function(req, res) {
+  app.get('/auth/shopify', function(req, res) {
     req.checkQuery('hmac', 'Invalid or missing param').notEmpty();
     req.checkQuery('shop', 'Invalid or missing param').notEmpty();
     req.checkQuery('timestamp', 'Invalid or missing param').notEmpty().isInt();
@@ -27,23 +45,34 @@ module.exports = function(app) {
         return res.status(400).send(validationError(result));
       }
       let {hmac, shop, timestamp} = req.query;
-      const shopifyToken = getShopifyToken();
-      const nonce = shopifyToken.generateNonce();
 
-      redis.setNonceByShop(shop, nonce, function(err) {
-        if (err) {
-          winston.error(err);
-          res.status(500).send();
+      shopModel.getShop(shop)
+      .then((result) => {
+        // Shop does not exist in database => start installation process
+        if(result === null) {
+          const shopifyToken = getShopifyToken();
+          const nonce = shopifyToken.generateNonce();
+    
+          redis.setNonceByShop(shop, nonce, (err) => {
+            if (err) {
+              winston.error(err);
+              res.status(500).send();
+            } else {
+              const shop_name = shop.split('.')[0];
+              const url = shopifyToken.generateAuthUrl(shop_name, process.env.SHOPIFY_SCOPES, nonce);
+              return res.redirect(url);
+            }
+          });
+        // Shop is already known => skip installation process
         } else {
-          const shop_name = shop.split('.')[0];
-          const url = shopifyToken.generateAuthUrl(shop_name, process.env.SHOPIFY_SCOPES, nonce);
-          return res.redirect(url);
+          const token = getJWTToken(shop);
+          res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
         }
       })
     });
   });
 
-  app.get('/auth/redirect/uri', function(req, res) {
+  app.get('/auth/install', function(req, res) {
     req.checkQuery('code', 'Invalid or missing param').notEmpty();
     req.checkQuery('hmac', 'Invalid or missing param').notEmpty();
     req.checkQuery('timestamp', 'Invalid or missing param').notEmpty().isInt();
@@ -67,17 +96,22 @@ module.exports = function(app) {
         if (error || nonce !== state) {
           return res.status(400).send('State parameter do not match.');
         }
-        // NONCE should be maybe deleted from redis if matches
-        shopifyToken.getAccessToken(shop, code).then((token) => {
+        shopifyToken.getAccessToken(shop, code)
+        .then((token) => {
           return shopModel.saveShop(shop, token);
         })
         .then(() => {
           winston.info(`saved shop ${shop}`);
+          return setUpWebhook(shop, process.env.BASE_URL);
+        })
+        .then((webhook) => {
           const token = getJWTToken(shop);
           res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
-        }).catch((err) => {
+        })
+        .catch((err) => {
           winston.error(err);
-          return res.status(400).send('Unable to authenticate');
+          if (err.response) winston.error(err.response)
+          return res.status(500).send('Installation failed');
         });
       });
     });
@@ -85,23 +119,17 @@ module.exports = function(app) {
 
   app.get('/auth/uninstall', function(req, res) {
     if(checkWebhookSignature(req) && req.headers['X-Shopify-Topic'] === 'app/uninstalled') {
-      const shopUrl = req.headers['X-Shopify-Shop-Domain']
+      res.status(200).send();
       winston.info(req.body);
-      getShopifyInstance(shopUrl)
-      .then((shopify) => {
-        return shopify.webhook.delete(req.body.id);
-      })
-      .then((result) => {
-        console.log(`webhook delete result: ${result}`);
-        shopModel.deleteShop(shopUrl);
-      })
+      const shopUrl = req.headers['X-Shopify-Shop-Domain']
+      shopModel.deleteShop(shopUrl)
       .then(() => {
-        res.json();
+        winston.info(`Shop ${shopUrl} deleted`);
       })
       .catch((err) => {
-        res.status(500).json(err);
+        winston.error(err);
       })
     }
-    res.status(400).json({ error: 'Invalid Hmac'});
+    res.status(400).json({ error: 'Invalid Hmac or topic'});
   });
 };
