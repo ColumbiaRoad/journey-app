@@ -8,18 +8,11 @@ const getShopifyInstance = require('../helpers/shopifyHelper').getShopifyInstanc
 const validationError = require('../helpers/utils').validationError;
 
 function checkWebhookSignature(req) {
-  let data;
-  try{
-    data = new Buffer(req.body, 'utf8');
-  } catch(err) {
-    winston.error(err);
-    return false;
-  }
-  const digest = crypto.createHmac('SHA256', process.env.SHOPIFY_APP_SECRET)
-  .update(data)
+  const hmac = req.headers['x-shopify-hmac-sha256']
+  const digest = crypto.createHmac('sha256', process.env.SHOPIFY_APP_SECRET)
+  .update(req.rawBody)
   .digest('base64');
-
-  return digest === req.headers['X-Shopify-Hmac-Sha256'];
+  return digest === hmac;
 }
 
 function setUpWebhook(shop, accessToken, baseUrl) {
@@ -120,18 +113,23 @@ module.exports = function(app) {
   });
 
   app.post('/auth/uninstall', function(req, res) {
-    if(checkWebhookSignature(req) && req.headers['X-Shopify-Topic'] === 'app/uninstalled') {
+    if(checkWebhookSignature(req)) {
+      // Answer as quickly as possible to ensure to stay within
+      // Shopify's 5s timer
       res.status(200).send();
-      winston.info(req.body);
-      const shopUrl = req.headers['X-Shopify-Shop-Domain']
-      shopModel.deleteShop(shopUrl)
-      .then(() => {
-        winston.info(`Shop ${shopUrl} deleted`);
-      })
-      .catch((err) => {
-        winston.error(err);
-      })
+      // Only delete shop if topic is correct
+      if(req.headers['x-shopify-topic'] === 'app/uninstalled') {
+        const shopUrl = req.headers['x-shopify-shop-domain']
+        shopModel.deleteShop(shopUrl)
+        .then(() => {
+          winston.info(`Shop ${shopUrl} deleted`);
+        })
+        .catch((err) => {
+          winston.error(err);
+        })
+      }
+    } else {
+      res.status(400).json({ error: 'Invalid HMAC'});
     }
-    res.status(400).json({ error: 'Invalid Hmac or topic'});
   });
 };
