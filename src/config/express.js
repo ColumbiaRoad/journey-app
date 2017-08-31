@@ -41,7 +41,6 @@ module.exports = function() {
 
 
   // IMPORT ROUTES HERE
-  require('../routes/hello')(app);
   require('../routes/authentication')(app);
   require('../routes/api.js')(app);
   require('../routes/journey-assistant.js')(app);
