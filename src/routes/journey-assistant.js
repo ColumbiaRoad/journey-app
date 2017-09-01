@@ -136,7 +136,7 @@ module.exports = function(app) {
         return getShopifyInstance(req.auth.shop);
       })
       .then((shopify) => {
-        return shopify.product.get(req.query.productId, { fields: 'id,title,options,variants' });
+        return shopify.product.get(req.query.productId, { fields: 'id,handle,options,variants' });
       })
       .then((product) => {
         const answers = {};
