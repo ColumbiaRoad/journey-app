@@ -3,15 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const jwt = require('express-jwt');
+const cors = require('cors');
 const scopes = require('../helpers/utils').scopes;
-
-const allowCrossDomain = (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', process.env.ACCESS_CONTROL_ALLOW_ORIGIN);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-
-    next();
-};
 
 module.exports = function() {
   const app = express();
@@ -27,7 +20,10 @@ module.exports = function() {
   app.use(bodyParser.json());
   app.use(expressValidator());
 
-  app.use(allowCrossDomain);
+  const corsConfig = {
+    origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN
+  };
+  app.use(cors(corsConfig));
   const jwtConfig = {
     secret: process.env.SHOPIFY_APP_SECRET,
     requestProperty: 'auth'
@@ -42,6 +38,7 @@ module.exports = function() {
   app.use(jwt(jwtConfig).unless({path: [/^\/auth\//, /^\/journey-assistant/]}));
   // Require API right to access api
   app.use('/api/', guard.check(scopes.api));
+  app.options('/api/', cors(corsConfig));
   app.use(function (err, req, res, next) {
     if (err.code === 'invalid_token') {
       res.status(401).send('Invalid token');
