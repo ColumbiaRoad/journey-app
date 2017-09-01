@@ -5,13 +5,6 @@ const questionnaireModel = require('../models/questionnaire');
 const validationError = require('../helpers/utils').validationError;
 
 module.exports = function(app) {
-  app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", process.env.ACCESS_CONTROL_ALLOW_ORIGIN);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
-    next();
-  });
-
   app.get('/api/v1/products', (req, res) => {
     getShopifyInstance(req.auth.shop)
       .then((shopify) => {

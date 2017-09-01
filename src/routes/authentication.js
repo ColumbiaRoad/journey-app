@@ -3,6 +3,7 @@ const winston = require('winston'); // LOGGING
 const redis = require('../helpers/redisHelper');
 const shopModel = require('../models/shop');
 const getJWTToken = require('../helpers/utils').getJWTToken;
+const scopes = require('../helpers/utils').scopes;
 const getShopifyToken = require('../helpers/shopifyHelper').getShopifyToken;
 const getShopifyInstance = require('../helpers/shopifyHelper').getShopifyInstance;
 const validationError = require('../helpers/utils').validationError;
@@ -58,7 +59,7 @@ module.exports = function(app) {
           });
         // Shop is already known => skip installation process
         } else {
-          const token = getJWTToken(shop);
+          const token = getJWTToken(shop, scopes.api);
           res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
         }
       })
@@ -100,7 +101,7 @@ module.exports = function(app) {
           return setUpWebhook(shop, accessToken, process.env.BASE_URL);
         })
         .then((webhook) => {
-          const token = getJWTToken(shop);
+          const token = getJWTToken(shop, scopes.api);
           res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
         })
         .catch((err) => {

@@ -3,14 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const jwt = require('express-jwt');
-
-const allowCrossDomain = (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', process.env.ACCESS_CONTROL_ALLOW_ORIGIN);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-
-    next();
-};
+const cors = require('cors');
+const scopes = require('../helpers/utils').scopes;
 
 module.exports = function() {
   const app = express();
@@ -26,16 +20,30 @@ module.exports = function() {
   app.use(bodyParser.json());
   app.use(expressValidator());
 
-  app.use(allowCrossDomain);
+  const corsConfig = {
+    origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN
+  };
+  app.use(cors(corsConfig));
   const jwtConfig = {
     secret: process.env.SHOPIFY_APP_SECRET,
     requestProperty: 'auth'
   };
-  // Require JWT token for all paths but the ones starting with /auth/
+
+  const guard = require('express-jwt-permissions')({
+    requestProperty: 'auth',
+    permissionsProperty: 'scope'
+  });
+
+  // Require JWT token for all paths but the ones starting with /auth/ or /journey-assistant
   app.use(jwt(jwtConfig).unless({path: [/^\/auth\//, /^\/journey-assistant/]}));
+  // Require API right to access api
+  app.use('/api/', guard.check(scopes.api));
+  app.options('/api/', cors(corsConfig));
   app.use(function (err, req, res, next) {
-    if (err.name === 'UnauthorizedError') {
-      res.status(401).json('Invalid token');
+    if (err.code === 'invalid_token') {
+      res.status(401).send('Invalid token');
+    } else if (err.code === 'permission_denied') {
+      res.status(403).send('Insufficient Permissions');
     }
   });
 
