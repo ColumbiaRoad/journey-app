@@ -14,6 +14,27 @@ const guard = require('express-jwt-permissions')({
   permissionsProperty: 'scope'
 });
 
+// Configure express to look for a JWT token as a query paramter
+const jwtCheck = jwt({
+  secret: process.env.SHOPIFY_APP_SECRET,
+  requestProperty: 'auth',
+  getToken: function fromQuerystring (req) {
+    if (req.query && req.query.token) {
+      return req.query.token;
+    }
+    return null;
+  }
+});
+
+// Catch errors caused by validating the JWT token
+const handleErrors = (err, req, res, next) => {
+  if (err.code === 'invalid_token') {
+    res.status(401).send('Invalid token');
+  } else if (err.code === 'permission_denied') {
+    res.status(403).send('Insufficient Permissions');
+  }
+};
+
 function checkSignature(query) {
   const params = Object.keys(query).filter(k => k !== 'hmac' && k !== 'signature').sort().map((k) => {
     return `${k}=${Array.isArray(query[k]) ? query[k].join() : query[k]}`;
@@ -99,26 +120,11 @@ module.exports = function(app) {
 
   app.get('/journey-assistant/:questionnaireId',
     // Validate JWT token in query
-    jwt({
-      secret: process.env.SHOPIFY_APP_SECRET,
-      requestProperty: 'auth',
-      getToken: function fromQuerystring (req) {
-        if (req.query && req.query.token) {
-          return req.query.token;
-        }
-        return null;
-      }
-    }),
+    jwtCheck,
     // Check permissions
     guard.check(scopes.app),
-    // Handle errors
-    (err, req, res, next) => {
-      if (err.code === 'invalid_token') {
-        res.status(401).send('Invalid token');
-      } else if (err.code === 'permission_denied') {
-        res.status(403).send('Insufficient Permissions');
-      }
-    },
+    // Handle any JWT related errors
+    handleErrors,
     (req, res) => {
       req.checkQuery('productId', 'Invalid or missing param').notEmpty().isInt();
       req.getValidationResult()
@@ -147,7 +153,7 @@ module.exports = function(app) {
       })
       .catch((err) => {
         winston.error(err);
-        res.status(400).send('<p>Malformed request</p>');
+        res.status(404).send('<p>Unknown shop or product</p>');
       })
     }
   );
