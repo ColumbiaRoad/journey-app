@@ -5,6 +5,7 @@ const db = require('../src/models/db').getDBInstance();
 const express = require('../src/config/express');
 const app = express();
 const getJWTToken = require('../src/helpers/utils').getJWTToken;
+const scopes = require('../src/helpers/utils').scopes;
 const shopModel = require('../src/models/shop');
 const questionnaireModel = require('../src/models/questionnaire');
 
@@ -15,7 +16,7 @@ describe('route /api/v1/questionnaire', function() {
   let questionnaireId;
   before(function(done) {
     shopName = 'questionnaire-route-test.myshopify.com';
-    token = getJWTToken(shopName);    
+    token = getJWTToken(shopName, scopes.api);    
     questionnaire = {
       rootQuestion: {
         question: 'What are you looking for?',
