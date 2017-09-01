@@ -41,7 +41,7 @@ module.exports = function() {
   // Require JWT token for all paths but the ones starting with /auth/ or /journey-assistant
   app.use(jwt(jwtConfig).unless({path: [/^\/auth\//, /^\/journey-assistant/]}));
   // Require API right to access api
-  app.use(/^\/api\//, guard.check(scopes.api));
+  app.use('/api/', guard.check(scopes.api));
   app.use(function (err, req, res, next) {
     if (err.code === 'invalid_token') {
       res.status(401).send('Invalid token');
