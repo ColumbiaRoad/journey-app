@@ -43,10 +43,10 @@ module.exports = function() {
   // Require API right to access api
   app.use(/^\/api\//, guard.check(scopes.api));
   app.use(function (err, req, res, next) {
-    if (err.name === 'UnauthorizedError') {
-      res.status(401).json('Invalid token');
+    if (err.code === 'invalid_token') {
+      res.status(401).send('Invalid token');
     } else if (err.code === 'permission_denied') {
-      res.status(401).send('Insufficient Permissions');
+      res.status(403).send('Insufficient Permissions');
     }
   });
 
