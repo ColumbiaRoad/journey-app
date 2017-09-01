@@ -9,15 +9,21 @@ Serves as backend/api for our Journey Assistant Shopify app.
 Meant as main entry point for Shopify. Endpoints expect certain parameters, as documented by Shopify, to be present, absence of said parameters will cause validation errors. Furthermore, signatures are checked.
 
 #### `/api/v1/`
-Main entry point for the frontend application. Each request made to this endpoint must provide a JSON Web Token, absence of said token will cause `401`. The token needed to succesfully access any of the endpoints is generated during the authentication process which is initiated by Shopify. Each token is valid for 3 hours (a Shopify page refresh reinitiates the authentication process and thus generates a fresh token) and has the following form:
+Main entry point for the frontend application. Each request made to this endpoint must provide a JSON Web Token, absence of said token will cause `401`. Furthermore, the token has to have the correct access rights, namely `scope: api`, or `403` is returned. The token needed to succesfully access any of the endpoints is generated during the authentication process which is initiated by Shopify. Each token is valid for 3 hours (a Shopify page refresh reinitiates the authentication process and thus generates a fresh token) and has the following form:
 ```js
 {
   shop: shopUrl // Example: columbiaroad.myshopify.com
+  scope: accessScope // Example: application-proxy
 }
 ```
 
 #### `/journey-assistant/`
-Meant as entry point for Shopify when accessing our application proxy. Like every endpoint that is directly accessed by Shopify, the general endpoint `/journey-assistant/` expects certain parameters to be present and validates the provided signature. The second endpoint `/journey-assistant/:questionnaire` is accessed by the HTML code that was served by our applicaiton proxy and expects a JSON Web Token to be present. The token is of the same form as before.
+Meant as entry point for Shopify when accessing our application proxy. Like every endpoint that is directly accessed by Shopify, the general endpoint `/journey-assistant/` expects certain parameters to be present and validates the provided signature. The second endpoint `/journey-assistant/:questionnaire` is accessed by the HTML code that was served by our applicaiton proxy and expects a JSON Web Token to be present. The token is of the same form as before. The necessary access right to succesfully access this endpoint is `scope: application-proxy`.
+
+## Scopes
+Where possible (i.e. not direclty accessed by Shopify) routes are protected by JWT tokens. To ensure shop visitors cannot steal a token from the questionnaire form and access confidential store data, scopes are used for tokens to introduce different access rights. For following scopes exist:
+* `api`: grants access to API routes, thus access to database data as well as Shopify data
+* `application-proxy`: grants access to `/journey-assistant/:questionnaireId` route which is needed for the application proxy
 
 ## Configured scripts
 * `npm start` start server
@@ -31,7 +37,7 @@ Meant as entry point for Shopify when accessing our application proxy. Like ever
 * SHOPIFY_API_SECRET: Secret of your app's [credentials](https://help.shopify.com/api/getting-started/authentication/oauth#step-1-get-the-clients-credentials)
 * BASE_URL: URL where this application is hosted, including protocol. **No trailing `/`!**
 * ADMIN_PANEL_URL: URL where your frontend application is hosted, including protocol. **No trailing `/`!**
-* ACCESS_CONTROL_ALLOW_ORIGIN: Needed for [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS), should be either identical to `ADMIN_PANEL_URL` or `*`
+* ACCESS_CONTROL_ALLOW_ORIGIN: Needed for [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS), should be either identical to `ADMIN_PANEL_URL` or `true`, more info [here](https://www.npmjs.com/package/cors#configuration-options)
 
 ## Local setup
 
