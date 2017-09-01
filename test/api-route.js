@@ -1,32 +1,28 @@
 require('dotenv').config();
 const request = require('supertest');
 const expect = require('expect.js');
-const crypto = require('crypto');
 const express = require('../src/config/express');
 const app = express();
-const shopModel = require('../src/models/shop');
-const questionnaireModel = require('../src/models/questionnaire');
 const getJWTToken = require('../src/helpers/utils').getJWTToken;
 const scopes = require('../src/helpers/utils').scopes;
+const shopModel = require('../src/models/shop');
+const questionnaireModel = require('../src/models/questionnaire');
 
-describe('route /journey-assistant', function() {
-  let shopName;
+describe('route /api/v1/products', function() {
   let validToken;
   let invalidToken;
-  let apiToken;
+  let appToken;
+  let shopName;
+  let questionnaire;
   let questionnaireId;
 
   before(function(done) {
-    shopName = 'journeyAssistantRouteTest';
-    validToken = getJWTToken(shopName, scopes.app);
-    invalidToken = 'test';
-    apiToken = getJWTToken(shopName, scopes.api);
-    const questionnaire = {
+    questionnaire = {
       rootQuestion: {
         question: 'What are you looking for?',
         answerMapping: [
-          { id: 'j6ew2kx6', answer: 'This!', value: '11152897108' },
-          { id: 'j6ew2kz9', answer: 'That!', value: '11152891412' }
+          { id: 'j6ew2kx6', answer: 'This!', value: '11152891412' },
+          { id: 'j6ew2kz9', answer: 'That!', value: '11152897108' }
         ]
       },
       selectedProducts: [
@@ -38,7 +34,7 @@ describe('route /journey-assistant', function() {
               question: 'Are you mainstream?',
               answerMapping: [
                 { id: 'j6ew3la5', answer: 'Yes', value: 'Default Title' },
-                { id: 'j6ew3lk1', answer: 'No', value: 'Custom Title' }
+                { id: 'j6ew3lk1', answer: 'No', value: 'Default Title' }
               ]
             }
           ]
@@ -65,7 +61,11 @@ describe('route /journey-assistant', function() {
         }
       ]
     };
-    shopModel.saveShop(shopName, 'someAccessToken')
+    shopName = 'api-route-test.myshopify.com';
+    validToken = getJWTToken(shopName, scopes.api);
+    invalidToken = 'foobar';
+    appToken = getJWTToken(shopName, 'test');
+    shopModel.saveShop(shopName, 'testToken')
     .then(function(result) {
       return questionnaireModel.createQuestionnaire(shopName)
     })
@@ -83,54 +83,29 @@ describe('route /journey-assistant', function() {
 
   after(function(done) {
     shopModel.deleteShop(shopName)
-    .then(function(result) {
+    .then(() => {
       done();
     })
-    .catch(function(err) {
+    .catch((err) => {
       done(err);
     });
   });
 
-  it('GET /journey-assistant', function(done) {
-    const params = {
-      shop: shopName,
-      path_prefix: '/apps/findmybike',
-      timestamp: new Date().getTime()
-    }
-    const pairs = Object.keys(params).sort().map((k) => {
-      return `${k}=${params[k]}`;
-    });
-    const digest = crypto.createHmac('sha256', process.env.SHOPIFY_APP_SECRET)
-    .update(pairs.join(''))
-    .digest('hex');
-    const url = `/journey-assistant?shop=${params.shop}&path_prefix=${params.path_prefix}&timestamp=${params.timestamp}&signature=${digest}`;
+  it('access granted to API with valid token', function(done) {
     request(app)
-      .get(url)
+      .get(`/api/v1/questionnaire/${questionnaireId}`)
+      .set('Authorization', `Bearer ${validToken}`)
       .expect(200)
-      .expect('content-type', 'application/liquid; charset=utf-8')
       .end(function(err, res) {
-        if(err) return done(err);
+        if (err) return done(err);
         done();
       });
   });
 
-  it('access granted with valid token', function(done) {
-    const url = `/journey-assistant/${questionnaireId}?productId=1234&token=${validToken}`;
+  it('access denied to API with invalid token', function(done) {
     request(app)
-    .get(url)
-    .set('Authorization', `Bearer ${validToken}`)
-    .expect(404) // Expect 404 because we're accessing Shopify
-    .end(function(err, res) {
-      if (err) return done(err);
-      done();
-    });
-  });
-
-  it('access denied with invalid token', function(done) {
-    const url = `/journey-assistant/${questionnaireId}?productId=1234&token=${invalidToken}`;
-    request(app)
-    .get(url)
-    .set('Authorization', `Bearer ${validToken}`)
+    .get(`/api/v1/questionnaire/${questionnaireId}`)
+    .set('Authorization', `Bearer ${invalidToken}`)
     .expect(401)
     .end(function(err, res) {
       if (err) return done(err);
@@ -138,11 +113,10 @@ describe('route /journey-assistant', function() {
     });
   });
 
-  it('access denied with API token', function(done) {
-    const url = `/journey-assistant/${questionnaireId}?productId=1234&token=${apiToken}`;
+  it('access denied to API with valid token with application proxy token', function(done) {
     request(app)
-    .get(url)
-    .set('Authorization', `Bearer ${validToken}`)
+    .get(`/api/v1/questionnaire/${questionnaireId}`)
+    .set('Authorization', `Bearer ${appToken}`)
     .expect(403)
     .end(function(err, res) {
       if (err) return done(err);
