@@ -13,7 +13,7 @@ Main entry point for the frontend application. Each request made to this endpoin
 ```js
 {
   shop: shopUrl // Example: columbiaroad.myshopify.com
-  scope: accessScope // Example: application-proxy
+  scope: accessScope // Example: api
 }
 ```
 
@@ -21,7 +21,7 @@ Main entry point for the frontend application. Each request made to this endpoin
 Meant as entry point for Shopify when accessing our application proxy. Like every endpoint that is directly accessed by Shopify, the general endpoint `/journey-assistant/` expects certain parameters to be present and validates the provided signature. The second endpoint `/journey-assistant/:questionnaire` is accessed by the HTML code that was served by our applicaiton proxy and expects a JSON Web Token to be present. The token is of the same form as before. The necessary access right to succesfully access this endpoint is `scope: application-proxy`.
 
 ## Scopes
-Where possible (i.e. not direclty accessed by Shopify) routes are protected by JWT tokens. To ensure shop visitors cannot steal a token from the questionnaire form and access confidential store data, scopes are used for tokens to introduce different access rights. For following scopes exist:
+Where possible (i.e. not direclty accessed by Shopify) routes are protected by JWT tokens. To ensure shop visitors cannot steal a token from the questionnaire form and access confidential store data, scopes are used for tokens to introduce different access rights. The following scopes exist:
 * `api`: grants access to API routes, thus access to database data as well as Shopify data
 * `application-proxy`: grants access to `/journey-assistant/:questionnaireId` route which is needed for the application proxy
 
