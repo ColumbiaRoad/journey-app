@@ -6,7 +6,7 @@ Serves as backend/api for our Journey Assistant Shopify app.
 ## Routes
 
 #### `/auth/`
-Meant as main entry point for Shopify. Endpoints expect certain parameters, as documented by Shopify, to be present, absence of said parameters will cause validation errors. Furthermore, signatures are checked.
+Meant as main entry point for Shopify. Endpoints expect certain parameters, [as documented by Shopify](https://help.shopify.com/api/getting-started/authentication/oauth), to be present, absence of said parameters will cause validation errors. Furthermore, signatures are checked.
 
 #### `/api/v1/`
 Main entry point for the frontend application. Each request made to this endpoint must provide a JSON Web Token, absence of said token will cause `401`. Furthermore, the token has to have the correct access rights, namely `scope: api`, or `403` is returned. The token needed to succesfully access any of the endpoints is generated during the authentication process which is initiated by Shopify. Each token is valid for 3 hours (a Shopify page refresh reinitiates the authentication process and thus generates a fresh token) and has the following form:
@@ -18,7 +18,7 @@ Main entry point for the frontend application. Each request made to this endpoin
 ```
 
 #### `/journey-assistant/`
-Meant as entry point for Shopify when accessing our application proxy. Like every endpoint that is directly accessed by Shopify, the general endpoint `/journey-assistant/` expects certain parameters to be present and validates the provided signature. The second endpoint `/journey-assistant/:questionnaire` is accessed by the HTML code that was served by our applicaiton proxy and expects a JSON Web Token to be present. The token is of the same form as before. The necessary access right to succesfully access this endpoint is `scope: application-proxy`.
+Meant as entry point for Shopify when accessing our application proxy. Like every endpoint that is directly accessed by Shopify, the general endpoint `/journey-assistant/` expects [certain parameters](https://help.shopify.com/api/tutorials/application-proxies#security) to be present and validates the provided signature. The second endpoint `/journey-assistant/:questionnaire` is accessed by the HTML code that was served by our application proxy and expects a JSON Web Token to be present. The token is of the same form as before. The necessary access right to succesfully access this endpoint is `scope: application-proxy`.
 
 ## Scopes
 Where possible (i.e. not direclty accessed by Shopify) routes are protected by JWT tokens. To ensure shop visitors cannot steal a token from the questionnaire form and access confidential store data, scopes are used for tokens to introduce different access rights. The following scopes exist:
