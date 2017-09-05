@@ -40,7 +40,6 @@ Where possible (i.e. not direclty accessed by Shopify) routes are protected by J
 * ACCESS_CONTROL_ALLOW_ORIGIN: Needed for [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS), should be either identical to `ADMIN_PANEL_URL` or `true`, more info [here](https://www.npmjs.com/package/cors#configuration-options)
 
 ## Local setup
-
 * Run `npm install` to install dependencies
 * Setup PostgreSQL database
 * Setup Redis slave
@@ -49,7 +48,7 @@ Where possible (i.e. not direclty accessed by Shopify) routes are protected by J
 `./node_modules/node-pg-migrate/bin/pg-migrate up`
 
 ## Heroku setup
-
+* Deploy code to heroku: `heroku create $APP_NAME --region eu`
 * Install free Redis and Postres add-ons for your dyno
 * Configure environment varibales according to `.env-template`
 * Run migrations to setup database tables:
