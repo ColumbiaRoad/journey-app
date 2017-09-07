@@ -22,7 +22,8 @@ function getNonceByShop(shop, callback) {
 function setNonceByShop(shop, nonce, callback) {
   const client = getClient();
   client.on('error', (err) => callback(err));
-  client.set(shop, nonce, 'EX', 300, () => {
+  // Key expires after 1 day
+  client.set(shop, nonce, 'EX', 86400, () => {
     client.quit();
     callback(null);
   });
