@@ -22,7 +22,7 @@ function getNonceByShop(shop, callback) {
 function setNonceByShop(shop, nonce, callback) {
   const client = getClient();
   client.on('error', (err) => callback(err));
-  client.set(shop, nonce, () => {
+  client.set(shop, nonce, 'EX', 300, () => {
     client.quit();
     callback(null);
   });
