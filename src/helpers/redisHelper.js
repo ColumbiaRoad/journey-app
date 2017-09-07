@@ -31,7 +31,7 @@ function setNonceByShop(shop, nonce, callback) {
 function deleteNonceByShop(shop, callback) {
   const client = getClient();
   client.on('error', (err) => callback(err));
-  client.del(shop, nonce, () => {
+  client.del(shop, () => {
     client.quit();
     callback(null);
   });
