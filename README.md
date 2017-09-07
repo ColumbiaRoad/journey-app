@@ -54,7 +54,7 @@ Where possible (i.e. not direclty accessed by Shopify) routes are protected by J
 * Add Node.js buildpack
 * Deploy code to heroku: `git push heroku`
 * Run migrations to setup database tables:
-`./node_modules/node-pg-migrate/bin/pg-migrate up`
+`heroku run npm run migrate`
 
 ## Create new migrations
 
