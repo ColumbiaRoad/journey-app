@@ -48,9 +48,11 @@ Where possible (i.e. not direclty accessed by Shopify) routes are protected by J
 `./node_modules/node-pg-migrate/bin/pg-migrate up`
 
 ## Heroku setup
-* Deploy code to heroku: `heroku create $APP_NAME --region eu`
-* Install free Redis and Postres add-ons for your dyno
+* Create app on heroku: `heroku create $APP_NAME --region eu`
+* Install free Redis and Postres add-ons for your app
 * Configure environment varibales according to `.env-template`
+* Add Node.js buildpack
+* Deploy code to heroku: `git push heroku`
 * Run migrations to setup database tables:
 `./node_modules/node-pg-migrate/bin/pg-migrate up`
 
