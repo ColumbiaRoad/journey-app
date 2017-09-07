@@ -34,8 +34,8 @@ module.exports = function() {
     permissionsProperty: 'scope'
   });
 
-  // Require JWT token for all paths but the ones starting with /auth/ or /journey-assistant
-  app.use(jwt(jwtConfig).unless({path: [/^\/auth\//, /^\/journey-assistant/]}));
+  // Require JWT token for all paths but the ones starting with /auth/ or /app
+  app.use(jwt(jwtConfig).unless({path: [/^\/auth\//, /^\/app/]}));
   // Require API right to access api
   app.use('/api/', guard.check(scopes.api));
   app.options('/api/', cors(corsConfig));
@@ -51,7 +51,7 @@ module.exports = function() {
   // IMPORT ROUTES HERE
   require('../routes/authentication')(app);
   require('../routes/api.js')(app);
-  require('../routes/journey-assistant.js')(app);
+  require('../routes/app.js')(app);
 
   return app;
 };
