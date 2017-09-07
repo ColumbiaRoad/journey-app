@@ -87,9 +87,13 @@ module.exports = function(app) {
       }
       let accessToken;
       redis.getNonceByShop(shop, (error, nonce) => {
+        if (error) winston.error(error);
         if (error || nonce !== state) {
           return res.status(400).send('State parameter do not match.');
         }
+        // Delete nonce
+        redis.deleteNonceByShop(shop, (error) => { winston.error(error); });
+        
         shopifyToken.getAccessToken(shop, code)
         .then((token) => {
           // Save token to access it later
