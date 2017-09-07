@@ -1,6 +1,7 @@
 {
   "name": "journey-app",
   "scripts": {
+    "postdeploy": "npm run migrate"
   },
   "env": {
     "ACCESS_CONTROL_ALLOW_ORIGIN": {
