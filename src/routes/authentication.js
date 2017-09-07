@@ -91,9 +91,6 @@ module.exports = function(app) {
         if (error || nonce !== state) {
           return res.status(400).send('State parameter do not match.');
         }
-        // Delete nonce
-        redis.deleteNonceByShop(shop, (error) => { winston.error(error); });
-        
         shopifyToken.getAccessToken(shop, code)
         .then((token) => {
           // Save token to access it later
@@ -111,7 +108,7 @@ module.exports = function(app) {
         .catch((err) => {
           winston.error(err);
           if (err.response) winston.error(err.response)
-          return res.status(500).send('Installation failed');
+            return res.status(500).send('Installation failed');
         });
       });
     });
