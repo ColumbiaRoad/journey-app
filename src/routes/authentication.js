@@ -106,10 +106,14 @@ module.exports = function(app) {
           res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
         })
         .catch((err) => {
-          winston.error(err);
-          if (err.response) winston.error(err.response)
-            return res.status(500).send('Installation failed');
+          err.response
+            ? winston.error(err.response)
+            : winston.error(err);
+          return res.status(500).send('Installation failed');
         });
+        
+        // Delete nonce
+        redis.deleteNonceByShop(shop, (error) => { winston.error(error); });
       });
     });
   });
