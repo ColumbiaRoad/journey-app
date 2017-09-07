@@ -87,6 +87,7 @@ module.exports = function(app) {
       }
       let accessToken;
       redis.getNonceByShop(shop, (error, nonce) => {
+        if (error) winston.error(error);
         if (error || nonce !== state) {
           return res.status(400).send('State parameter do not match.');
         }
@@ -105,10 +106,14 @@ module.exports = function(app) {
           res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
         })
         .catch((err) => {
-          winston.error(err);
-          if (err.response) winston.error(err.response)
+          err.response
+            ? winston.error(err.response)
+            : winston.error(err);
           return res.status(500).send('Installation failed');
         });
+        
+        // Delete nonce
+        redis.deleteNonceByShop(shop, (error) => { winston.error(error); });
       });
     });
   });
