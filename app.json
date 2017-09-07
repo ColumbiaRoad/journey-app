@@ -1,0 +1,39 @@
+{
+  "name": "journey-app",
+  "scripts": {
+  },
+  "env": {
+    "ACCESS_CONTROL_ALLOW_ORIGIN": {
+      "required": true
+    },
+    "ADMIN_PANEL_URL": {
+      "required": true
+    },
+    "BASE_URL": {
+      "required": true
+    },
+    "REDIS_URL": {
+      "required": true
+    },
+    "SHOPIFY_API_KEY": {
+      "required": true
+    },
+    "SHOPIFY_APP_SECRET": {
+      "required": true
+    },
+    "SHOPIFY_SCOPES": {
+      "required": true
+    }
+  },
+  "formation": {
+  },
+  "addons": [
+    "heroku-postgresql",
+    "heroku-redis"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
