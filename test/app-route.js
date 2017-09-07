@@ -9,7 +9,7 @@ const questionnaireModel = require('../src/models/questionnaire');
 const getJWTToken = require('../src/helpers/utils').getJWTToken;
 const scopes = require('../src/helpers/utils').scopes;
 
-describe('route /journey-assistant', function() {
+describe('route /app', function() {
   let shopName;
   let validToken;
   let invalidToken;
@@ -91,7 +91,7 @@ describe('route /journey-assistant', function() {
     });
   });
 
-  it('GET /journey-assistant', function(done) {
+  it('GET /app', function(done) {
     const params = {
       shop: shopName,
       path_prefix: '/apps/findmybike',
@@ -103,7 +103,7 @@ describe('route /journey-assistant', function() {
     const digest = crypto.createHmac('sha256', process.env.SHOPIFY_APP_SECRET)
     .update(pairs.join(''))
     .digest('hex');
-    const url = `/journey-assistant?shop=${params.shop}&path_prefix=${params.path_prefix}&timestamp=${params.timestamp}&signature=${digest}`;
+    const url = `/app?shop=${params.shop}&path_prefix=${params.path_prefix}&timestamp=${params.timestamp}&signature=${digest}`;
     request(app)
       .get(url)
       .expect(200)
@@ -115,7 +115,7 @@ describe('route /journey-assistant', function() {
   });
 
   it('access granted with valid token', function(done) {
-    const url = `/journey-assistant/${questionnaireId}?productId=1234&token=${validToken}`;
+    const url = `/app/${questionnaireId}?productId=1234&token=${validToken}`;
     request(app)
     .get(url)
     .set('Authorization', `Bearer ${validToken}`)
@@ -127,7 +127,7 @@ describe('route /journey-assistant', function() {
   });
 
   it('access denied with invalid token', function(done) {
-    const url = `/journey-assistant/${questionnaireId}?productId=1234&token=${invalidToken}`;
+    const url = `/app/${questionnaireId}?productId=1234&token=${invalidToken}`;
     request(app)
     .get(url)
     .set('Authorization', `Bearer ${validToken}`)
@@ -139,7 +139,7 @@ describe('route /journey-assistant', function() {
   });
 
   it('access denied with API token', function(done) {
-    const url = `/journey-assistant/${questionnaireId}?productId=1234&token=${apiToken}`;
+    const url = `/app/${questionnaireId}?productId=1234&token=${apiToken}`;
     request(app)
     .get(url)
     .set('Authorization', `Bearer ${validToken}`)

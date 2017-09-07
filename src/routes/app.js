@@ -61,7 +61,7 @@ function findProductVariant(product, answers) {
 }
 
 module.exports = function(app) {
-  app.get('/journey-assistant', (req, res) => {
+  app.get('/app', (req, res) => {
     req.checkQuery('shop', 'Invalid or missing param').notEmpty();
     req.checkQuery('timestamp', 'Invalid or missing param').notEmpty().isInt();
     req.checkQuery('signature', 'Invalid or missing param').notEmpty();
@@ -106,7 +106,7 @@ module.exports = function(app) {
               shop: req.query.shop,
               questionnaire: questionnaire,
               token: getJWTToken(req.query.shop, scopes.app),
-              actionUrl: `${req.protocol}://${req.get('host')}/journey-assistant/${questionnaireId}`
+              actionUrl: `${req.protocol}://${req.get('host')}/app/${questionnaireId}`
             }));
           }
         });
@@ -118,7 +118,7 @@ module.exports = function(app) {
     });
   });
 
-  app.get('/journey-assistant/:questionnaireId',
+  app.get('/app/:questionnaireId',
     // Validate JWT token in query
     jwtCheck,
     // Check permissions
@@ -145,10 +145,10 @@ module.exports = function(app) {
         }
         const matchingVariant = findProductVariant(product, answers);
         if(matchingVariant) {
-          res.redirect(`https://${req.auth.shop}/products/${product.handle}?variant=${matchingVariant.id}&ref=journey-assistant`);
+          res.redirect(`https://${req.auth.shop}/products/${product.handle}?variant=${matchingVariant.id}&ref=journey`);
         } else {
           // If no matching variant is found, default to product page
-          res.redirect(`https://${req.auth.shop}/products/${product.handle}?ref=journey-assistant`);
+          res.redirect(`https://${req.auth.shop}/products/${product.handle}?ref=journey`);
         }
       })
       .catch((err) => {
