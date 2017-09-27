@@ -113,7 +113,9 @@ module.exports = function(app) {
         });
         
         // Delete nonce
-        redis.deleteNonceByShop(shop, (error) => { winston.error(error); });
+        redis.deleteNonceByShop(shop, (error) => {
+          if(error) winston.error(error);
+        });
       });
     });
   });
