@@ -38,31 +38,36 @@ module.exports = function(app) {
       if (!result.isEmpty()) {
         return res.status(400).send(validationError(result));
       }
-      let {hmac, shop, timestamp} = req.query;
-
-      shopModel.getShop(shop)
-      .then((result) => {
-        // Shop does not exist in database => start installation process
-        if(result === null) {
-          const shopifyToken = getShopifyToken();
-          const nonce = shopifyToken.generateNonce();
-    
-          redis.setNonceByShop(shop, nonce, (err) => {
-            if (err) {
-              winston.error(err);
-              res.status(500).send();
-            } else {
-              const shop_name = shop.split('.')[0];
-              const url = shopifyToken.generateAuthUrl(shop_name, process.env.SHOPIFY_SCOPES, nonce);
-              return res.redirect(url);
-            }
-          });
-        // Shop is already known => skip installation process
-        } else {
-          const token = getJWTToken(shop, scopes.api);
-          res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
-        }
-      })
+      
+      const shopifyToken = getShopifyToken();
+      const validRequest = shopifyToken.verifyHmac(req.query);
+      let { shop } = req.query;
+      if (validRequest) {
+        shopModel.getShop(shop)
+        .then((result) => {
+          // Shop does not exist in database => start installation process
+          if(result === null) {
+            const nonce = shopifyToken.generateNonce();
+      
+            redis.setNonceByShop(shop, nonce, (err) => {
+              if (err) {
+                winston.error(err);
+                res.status(500).send();
+              } else {
+                const shop_name = shop.split('.')[0];
+                const url = shopifyToken.generateAuthUrl(shop_name, process.env.SHOPIFY_SCOPES, nonce);
+                return res.redirect(url);
+              }
+            });
+          // Shop is already known => skip installation process
+          } else {
+            const token = getJWTToken(shop, scopes.api);
+            res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
+          }
+        })
+      } else {
+        return res.status(401).send('Invalid signature');
+      }
     });
   });
 
@@ -83,13 +88,13 @@ module.exports = function(app) {
         hmac, state, code, shop, timestamp
       });
       if (!tokenMatch) {
-        return res.status(400).send('HMAC do not match');
+        return res.status(401).send('Invalid signature');
       }
       let accessToken;
       redis.getNonceByShop(shop, (error, nonce) => {
         if (error) winston.error(error);
         if (error || nonce !== state) {
-          return res.status(400).send('State parameter do not match.');
+          return res.status(401).send('Nonce mismatch');
         }
         shopifyToken.getAccessToken(shop, code)
         .then((token) => {
@@ -103,7 +108,9 @@ module.exports = function(app) {
         })
         .then((webhook) => {
           const token = getJWTToken(shop, scopes.api);
-          res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
+          // Redirect to Shopify admin because app is unlikely to be loaded in iFrame,
+          // thus would require a redirect
+          res.redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}`);
         })
         .catch((err) => {
           err.response
@@ -113,7 +120,9 @@ module.exports = function(app) {
         });
         
         // Delete nonce
-        redis.deleteNonceByShop(shop, (error) => { winston.error(error); });
+        redis.deleteNonceByShop(shop, (error) => {
+          if(error) winston.error(error);
+        });
       });
     });
   });
@@ -135,7 +144,7 @@ module.exports = function(app) {
         })
       }
     } else {
-      res.status(400).json({ error: 'Invalid HMAC'});
+      res.status(401).json({ error: 'Invalid HMAC'});
     }
   });
 };
