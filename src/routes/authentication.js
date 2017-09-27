@@ -108,7 +108,9 @@ module.exports = function(app) {
         })
         .then((webhook) => {
           const token = getJWTToken(shop, scopes.api);
-          res.redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}`);      
+          // Redirect to Shopify admin because app is unlikely to be loaded in iFrame,
+          // thus would require a redirect
+          res.redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}`);
         })
         .catch((err) => {
           err.response
