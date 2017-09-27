@@ -103,7 +103,7 @@ module.exports = function(app) {
         })
         .then((webhook) => {
           const token = getJWTToken(shop, scopes.api);
-          res.redirect(`${process.env.ADMIN_PANEL_URL}?shop=${shop}&token=${token}`);
+          res.redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}`);      
         })
         .catch((err) => {
           err.response
